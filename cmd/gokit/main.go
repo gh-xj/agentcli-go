@@ -38,6 +38,8 @@ func runNew(args []string) int {
 	baseDir := "."
 	module := ""
 	name := ""
+	runtime := "legacy"
+	localGokitPath := ""
 
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
@@ -55,6 +57,20 @@ func runNew(args []string) int {
 			}
 			module = args[i+1]
 			i++
+		case "--runtime":
+			if i+1 >= len(args) {
+				fmt.Fprintln(os.Stderr, "--runtime requires a value (legacy|cobrax)")
+				return gokit.ExitUsage
+			}
+			runtime = args[i+1]
+			i++
+		case "--local-gokit":
+			if i+1 >= len(args) {
+				fmt.Fprintln(os.Stderr, "--local-gokit requires a path")
+				return gokit.ExitUsage
+			}
+			localGokitPath = args[i+1]
+			i++
 		default:
 			if name == "" {
 				name = args[i]
@@ -66,11 +82,14 @@ func runNew(args []string) int {
 	}
 
 	if name == "" {
-		fmt.Fprintln(os.Stderr, "usage: gokit new [--dir path] [--module module/path] <name>")
+		fmt.Fprintln(os.Stderr, "usage: gokit new [--dir path] [--module module/path] [--runtime legacy|cobrax] [--local-gokit path] <name>")
 		return gokit.ExitUsage
 	}
 
-	root, err := gokit.ScaffoldNew(baseDir, name, module)
+	root, err := gokit.ScaffoldNewWithOptions(baseDir, name, module, gokit.ScaffoldOptions{
+		Runtime:        runtime,
+		LocalGokitPath: localGokitPath,
+	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return gokit.ExitFailure
@@ -170,7 +189,7 @@ func runDoctor(args []string) int {
 func printUsage() {
 	fmt.Fprintln(os.Stderr, "gokit scaffold CLI")
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintln(os.Stderr, "  gokit new [--dir path] [--module module/path] <name>")
+	fmt.Fprintln(os.Stderr, "  gokit new [--dir path] [--module module/path] [--runtime legacy|cobrax] [--local-gokit path] <name>")
 	fmt.Fprintln(os.Stderr, "  gokit add command [--dir path] <name>")
 	fmt.Fprintln(os.Stderr, "  gokit doctor [--dir path] [--json]")
 }
