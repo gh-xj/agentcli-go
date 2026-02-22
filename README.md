@@ -62,3 +62,7 @@ go run ./cmd/gokit new --module example.com/mycli mycli
 go run ./cmd/gokit add command --dir ./mycli sync-data
 go run ./cmd/gokit doctor --dir ./mycli --json
 ```
+
+Generated projects include a deterministic smoke artifact contract:
+- writes `test/smoke/version.output.json`
+- validates output against `test/smoke/version.schema.json`

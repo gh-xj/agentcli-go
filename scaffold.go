@@ -30,8 +30,9 @@ type DoctorFinding struct {
 
 // DoctorReport summarizes scaffold compliance checks.
 type DoctorReport struct {
-	OK       bool            `json:"ok"`
-	Findings []DoctorFinding `json:"findings"`
+	SchemaVersion string          `json:"schema_version"`
+	OK            bool            `json:"ok"`
+	Findings      []DoctorFinding `json:"findings"`
 }
 
 func (r DoctorReport) JSON() (string, error) {
@@ -61,19 +62,21 @@ func ScaffoldNew(baseDir, name, module string) (string, error) {
 
 	d := templateData{Module: module, Name: name}
 	for path, body := range map[string]string{
-		"go.mod":                    goModTpl,
-		"main.go":                   mainTpl,
-		"cmd/root.go":               rootCmdTpl,
-		"internal/app/bootstrap.go": appBootstrapTpl,
-		"internal/app/lifecycle.go": appLifecycleTpl,
-		"internal/app/errors.go":    appErrorsTpl,
-		"internal/config/schema.go": configSchemaTpl,
-		"internal/config/load.go":   configLoadTpl,
-		"internal/io/output.go":     outputTpl,
-		"pkg/version/version.go":    versionTpl,
-		"test/e2e/cli_test.go":      e2eTestTpl,
-		"Taskfile.yml":              taskfileTpl,
-		"README.md":                 readmeTpl,
+		"go.mod":                            goModTpl,
+		"main.go":                           mainTpl,
+		"cmd/root.go":                       rootCmdTpl,
+		"internal/app/bootstrap.go":         appBootstrapTpl,
+		"internal/app/lifecycle.go":         appLifecycleTpl,
+		"internal/app/errors.go":            appErrorsTpl,
+		"internal/config/schema.go":         configSchemaTpl,
+		"internal/config/load.go":           configLoadTpl,
+		"internal/io/output.go":             outputTpl,
+		"internal/tools/smokecheck/main.go": smokeCheckTpl,
+		"pkg/version/version.go":            versionTpl,
+		"test/e2e/cli_test.go":              e2eTestTpl,
+		"test/smoke/version.schema.json":    smokeSchemaTpl,
+		"Taskfile.yml":                      taskfileTpl,
+		"README.md":                         readmeTpl,
 	} {
 		if err := writeTemplate(filepath.Join(root, path), body, d); err != nil {
 			return "", err
@@ -137,14 +140,17 @@ func Doctor(rootDir string) DoctorReport {
 		"internal/config/schema.go",
 		"internal/config/load.go",
 		"internal/io/output.go",
+		"internal/tools/smokecheck/main.go",
 		"pkg/version/version.go",
 		"test/e2e/cli_test.go",
+		"test/smoke/version.schema.json",
 		"Taskfile.yml",
 	}
 
 	report := DoctorReport{
-		OK:       true,
-		Findings: make([]DoctorFinding, 0),
+		SchemaVersion: "v1",
+		OK:            true,
+		Findings:      make([]DoctorFinding, 0),
 	}
 
 	for _, p := range required {
@@ -181,8 +187,11 @@ func Doctor(rootDir string) DoctorReport {
 	checkContains("cmd/root.go", "missing_contract", rootCommandMarker, "missing scaffold command marker")
 	checkContains("Taskfile.yml", "missing_contract", "ci:", "canonical CI task missing")
 	checkContains("Taskfile.yml", "missing_contract", "verify:", "local verification task missing")
+	checkContains("Taskfile.yml", "missing_contract", "test/smoke/version.output.json", "smoke artifact output path missing")
+	checkContains("Taskfile.yml", "missing_contract", "internal/tools/smokecheck", "smoke schema validation command missing")
 	checkContains("internal/app/lifecycle.go", "missing_contract", "Preflight", "lifecycle preflight hook missing")
 	checkContains("internal/app/lifecycle.go", "missing_contract", "Postflight", "lifecycle postflight hook missing")
+	checkContains("test/smoke/version.schema.json", "missing_contract", "\"schema_version\": \"v1\"", "smoke schema version missing")
 
 	slices.SortFunc(report.Findings, func(a, b DoctorFinding) int {
 		if c := strings.Compare(a.Path, b.Path); c != 0 {
@@ -267,7 +276,7 @@ import (
 
 type command struct {
 	Description string
-	Run         func(*gokit.AppContext, []string) error
+	Run         func([]string, bool) error
 }
 
 var commandRegistry = map[string]command{}
@@ -284,19 +293,20 @@ func registerCommand(name string, cmd command) {
 func registerBuiltins() {
 	registerCommand("version", command{
 		Description: "print build metadata",
-		Run: func(app *gokit.AppContext, _ []string) error {
+		Run: func(_ []string, jsonOutput bool) error {
 			data := map[string]string{
-				"name": app.Meta.Name,
-				"version": app.Meta.Version,
-				"commit": app.Meta.Commit,
-				"date": app.Meta.Date,
+				"schema_version": "v1",
+				"name":           "{{.Name}}",
+				"version":        "dev",
+				"commit":         "none",
+				"date":           "unknown",
 			}
-			if jsonOutput, _ := app.Values["json"].(bool); jsonOutput {
-				enc := json.NewEncoder(app.IO.Stdout)
+			if jsonOutput {
+				enc := json.NewEncoder(os.Stdout)
 				enc.SetIndent("", "  ")
 				return enc.Encode(data)
 			}
-			_, err := fmt.Fprintf(app.IO.Stdout, "%s %s (%s %s)\n", data["name"], data["version"], data["commit"], data["date"])
+			_, err := fmt.Fprintf(os.Stdout, "%s %s (%s %s)\n", data["name"], data["version"], data["commit"], data["date"])
 			return err
 		},
 	})
@@ -309,33 +319,29 @@ func Execute(args []string) int {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		printUsage()
-		return gokit.ExitUsage
+		return 2
 	}
 	if global.help || len(rest) == 0 {
 		printUsage()
-		return gokit.ExitUsage
+		return 2
 	}
 	cmdName := rest[0]
 	cmd, ok := commandRegistry[cmdName]
 	if !ok {
 		fmt.Fprintf(os.Stderr, "unknown command: %s\n", cmdName)
 		printUsage()
-		return gokit.ExitUsage
+		return 2
 	}
 
-	app := gokit.NewAppContext(context.Background())
-	app.Meta = gokit.AppMeta{Name: "{{.Name}}", Version: "dev", Commit: "none", Date: "unknown"}
-	app.Values["json"] = global.json
-	app.Values["config"] = global.config
-	app.Values["no-color"] = global.noColor
-
-	runErr := gokit.RunLifecycle(app, nil, func(app *gokit.AppContext) error {
-		return cmd.Run(app, rest[1:])
-	})
+	_ = context.Background() // reserved for future runtime context usage
+	runErr := cmd.Run(rest[1:], global.json)
 	if runErr != nil {
 		fmt.Fprintln(os.Stderr, runErr.Error())
 	}
-	return gokit.ResolveExitCode(runErr)
+	if runErr != nil {
+		return 1
+	}
+	return 0
 }
 
 type globalFlags struct {
@@ -395,8 +401,7 @@ const addCommandTpl = `package cmd
 
 import (
 	"fmt"
-
-	"github.com/gh-xj/gokit"
+	"os"
 )
 
 func init() {
@@ -405,12 +410,12 @@ func init() {
 func {{.Module}}Command() command {
 	return command{
 		Description: "describe {{.Name}}",
-		Run: func(app *gokit.AppContext, args []string) error {
-			if jsonOutput, _ := app.Values["json"].(bool); jsonOutput {
-				_, err := fmt.Fprintln(app.IO.Stdout, "{\"command\":\"{{.Name}}\",\"ok\":true}")
+		Run: func(args []string, jsonOutput bool) error {
+			if jsonOutput {
+				_, err := fmt.Fprintln(os.Stdout, "{\"command\":\"{{.Name}}\",\"ok\":true}")
 				return err
 			}
-			_, err := fmt.Fprintf(app.IO.Stdout, "{{.Name}} executed with %d args\n", len(args))
+			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} executed with %d args\n", len(args))
 			return err
 		},
 	}
@@ -421,32 +426,30 @@ const appBootstrapTpl = `package app
 
 import "github.com/gh-xj/gokit"
 
-func Bootstrap() *gokit.AppContext {
-	return gokit.NewAppContext(nil)
+func Bootstrap() {
+	gokit.InitLogger()
 }
 `
 
 const appLifecycleTpl = `package app
 
-import "github.com/gh-xj/gokit"
-
 type Hooks struct{}
 
-func (Hooks) Preflight(*gokit.AppContext) error {
+func (Hooks) Preflight() error {
 	return nil
 }
 
-func (Hooks) Postflight(*gokit.AppContext) error {
+func (Hooks) Postflight() error {
 	return nil
 }
 `
 
 const appErrorsTpl = `package app
 
-import "github.com/gh-xj/gokit"
+import "fmt"
 
 func UsageError(message string) error {
-	return gokit.NewCLIError(gokit.ExitUsage, "usage", message, nil)
+	return fmt.Errorf("usage: %s", message)
 }
 `
 
@@ -496,9 +499,108 @@ func TestPlaceholder(t *testing.T) {
 }
 `
 
+const smokeSchemaTpl = `{
+  "schema_version": "v1",
+  "required_keys": [
+    "schema_version",
+    "name",
+    "version",
+    "commit",
+    "date"
+  ]
+}
+`
+
+const smokeCheckTpl = `package main
+
+import (
+	"encoding/json"
+	"errors"
+	"flag"
+	"fmt"
+	"os"
+)
+
+type schema struct {
+	SchemaVersion string   ` + "`json:\"schema_version\"`" + `
+	RequiredKeys  []string ` + "`json:\"required_keys\"`" + `
+}
+
+func main() {
+	schemaPath := flag.String("schema", "", "path to schema file")
+	inputPath := flag.String("input", "", "path to smoke output json")
+	flag.Parse()
+
+	if *schemaPath == "" || *inputPath == "" {
+		fmt.Fprintln(os.Stderr, "usage: smokecheck --schema <schema.json> --input <output.json>")
+		os.Exit(2)
+	}
+	if err := run(*schemaPath, *inputPath); err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
+	}
+	fmt.Println("smoke schema check passed")
+}
+
+func run(schemaPath, inputPath string) error {
+	s, err := readSchema(schemaPath)
+	if err != nil {
+		return err
+	}
+	payload, err := readPayload(inputPath)
+	if err != nil {
+		return err
+	}
+	for _, key := range s.RequiredKeys {
+		if _, ok := payload[key]; !ok {
+			return fmt.Errorf("missing required key: %s", key)
+		}
+	}
+	if got, _ := payload["schema_version"].(string); got != s.SchemaVersion {
+		return fmt.Errorf("schema_version mismatch: got %q want %q", got, s.SchemaVersion)
+	}
+	return nil
+}
+
+func readSchema(path string) (schema, error) {
+	var out schema
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return out, err
+	}
+	if err := json.Unmarshal(data, &out); err != nil {
+		return out, err
+	}
+	if out.SchemaVersion == "" {
+		return out, errors.New("schema_version is required in schema")
+	}
+	if len(out.RequiredKeys) == 0 {
+		return out, errors.New("required_keys must not be empty")
+	}
+	return out, nil
+}
+
+func readPayload(path string) (map[string]any, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var out map[string]any
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+`
+
 const taskfileTpl = `version: "3"
 
 tasks:
+  deps:
+    desc: Sync module dependencies
+    cmds:
+      - go mod tidy
+
   fmt:
     desc: Format Go files
     cmds:
@@ -511,19 +613,19 @@ tasks:
 
   lint:
     desc: Run static checks
-    deps: [fmt:check]
+    deps: [deps, fmt:check]
     cmds:
       - go vet ./...
 
   test:
     desc: Run tests
-    deps: [fmt:check]
+    deps: [deps, fmt:check]
     cmds:
       - go test ./...
 
   build:
     desc: Build binary
-    deps: [fmt:check]
+    deps: [deps, fmt:check]
     cmds:
       - mkdir -p bin
       - go build -o bin/{{.Name}} .
@@ -532,7 +634,10 @@ tasks:
     desc: Deterministic smoke checks
     deps: [build]
     cmds:
-      - ./bin/{{.Name}} version --json >/tmp/{{.Name}}-smoke.json
+      - mkdir -p test/smoke
+      - rm -f test/smoke/version.output.json
+      - ./bin/{{.Name}} --json version > test/smoke/version.output.json
+      - go run ./internal/tools/smokecheck --schema test/smoke/version.schema.json --input test/smoke/version.output.json
 
   ci:
     desc: Canonical CI contract command

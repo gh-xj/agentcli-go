@@ -24,8 +24,10 @@ func TestScaffoldNewCreatesGoldenLayout(t *testing.T) {
 		"internal/config/schema.go",
 		"internal/config/load.go",
 		"internal/io/output.go",
+		"internal/tools/smokecheck/main.go",
 		"pkg/version/version.go",
 		"test/e2e/cli_test.go",
+		"test/smoke/version.schema.json",
 		"Taskfile.yml",
 	}
 	for _, rel := range required {
@@ -73,6 +75,9 @@ func TestDoctorReportsGeneratedProjectAsOK(t *testing.T) {
 	if !report.OK {
 		t.Fatalf("expected doctor OK, findings: %+v", report.Findings)
 	}
+	if report.SchemaVersion != "v1" {
+		t.Fatalf("unexpected schema version: %q", report.SchemaVersion)
+	}
 }
 
 func TestDoctorDetectsMissingFile(t *testing.T) {
@@ -98,5 +103,20 @@ func TestDoctorDetectsMissingFile(t *testing.T) {
 	}
 	if !found {
 		t.Fatalf("missing file finding not found: %+v", report.Findings)
+	}
+}
+
+func TestDoctorJSONIncludesSchemaVersion(t *testing.T) {
+	report := DoctorReport{
+		SchemaVersion: "v1",
+		OK:            true,
+		Findings:      []DoctorFinding{},
+	}
+	out, err := report.JSON()
+	if err != nil {
+		t.Fatalf("JSON marshal failed: %v", err)
+	}
+	if !strings.Contains(out, `"schema_version": "v1"`) {
+		t.Fatalf("schema_version missing from JSON: %s", out)
 	}
 }
