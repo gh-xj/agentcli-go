@@ -19,6 +19,8 @@ Shared Go CLI helpers for personal projects. Single flat package — no sub-pack
 | `errors.go` | `CLIError`, `ResolveExitCode` — typed error and exit mapping |
 | `scaffold.go` | `ScaffoldNew`, `ScaffoldAddCommand`, `Doctor` — golden project scaffolding and compliance checks |
 | `cmd/gokit/main.go` | `gokit` scaffold CLI entrypoint (`new`, `add command`, `doctor`) |
+| `internal/tools/schemacheck/main.go` | JSON contract validator for schema-based CI checks |
+| `schemas/*.schema.json` | Versioned JSON contracts for framework outputs |
 
 ## Rules
 

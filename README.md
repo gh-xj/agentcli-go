@@ -66,3 +66,8 @@ go run ./cmd/gokit doctor --dir ./mycli --json
 Generated projects include a deterministic smoke artifact contract:
 - writes `test/smoke/version.output.json`
 - validates output against `test/smoke/version.schema.json`
+
+This repo also enforces framework JSON contracts in CI:
+- schemas: `schemas/doctor-report.schema.json`, `schemas/scaffold-version-output.schema.json`
+- fixtures: `testdata/contracts/*.ok.json`
+- gate: `task schema:check` (included in `task ci`)
