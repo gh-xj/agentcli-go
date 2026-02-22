@@ -50,6 +50,7 @@ M4: Verification baseline (2-3 days)
 - Add generated Taskfile gates (`fmt`, `lint`, `test`, `build`, `smoke`, `verify`).
 - Add golden tests for text/JSON output determinism.
 - Add smoke e2e for generated sample CLI.
+- Add canonical CI contract command (`task ci`) and align all pipelines.
 
 ## 4. Work Breakdown
 
@@ -77,15 +78,26 @@ M4: Verification baseline (2-3 days)
 2. Add basic lint/test bootstrap.
 3. Add output golden testing harness.
 4. Add determinism checks for sorted output and stable exit codes.
+5. Add `gen:*:update` and `gen:*:check` target discipline.
+6. Add schema validation for smoke JSON outputs.
+7. Add artifact path conventions for CI debugging.
+
+### Track E: Invariant enforcement intake
+1. Add optional parser/validator for `.claude/architecture/invariants.yaml`.
+2. Enforce required fields for enforceable invariants:
+   `id`, `statement`, `status`, `evidence`, `owner`, `last_verified`.
+3. Fail-fast on ambiguous or incomplete enforceable entries.
+4. Convert accepted enforceable invariants to concrete harness checks.
 
 ## 5. Sequencing and Dependencies
 
 - Do Track A first (contract definitions), because Tracks B/C depend on API.
 - Track B and Track C can proceed in parallel once Track A is stable.
 - Track D starts with scaffold template skeleton, finalizes after Track C commands settle.
+- Track E starts after Track D command naming stabilizes.
 
 Dependency chain:
-- A -> (B + C) -> D
+- A -> (B + C) -> D -> E
 
 ## 6. Verification Plan
 
@@ -100,12 +112,15 @@ Generated-project verification:
 - `task test`
 - `task build`
 - `task smoke`
+- `task ci`
 - `task verify`
 
 Acceptance gates:
 - All commands pass in clean environment.
 - Generated project has deterministic outputs in golden tests.
 - `doctor --json` output is stable and parseable.
+- Smoke JSON validates against checked-in schemas.
+- `gen:*:check` catches drift without mutating repo state.
 
 ## 7. Backward Compatibility Strategy
 

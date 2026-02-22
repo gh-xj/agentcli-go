@@ -135,7 +135,26 @@ Testing requirements:
 - Scaffold emits predictable file organization and command skeletons.
 - Compliance checks enforce layout and contract invariants.
 
-## 9. Long-Term Roadmap
+## 9. Harness Engineering Contract (Mandatory)
+
+Framework and generated CLIs must adopt these harness rules:
+
+- One canonical CI contract command (default: `task ci`).
+- Local aggregate verification command (default: `task verify`).
+- Deterministic smoke harness with fixed fixtures and explicit reset/verify steps.
+- Smoke outputs persisted as JSON and validated against versioned schemas.
+- Generated artifacts follow split discipline:
+  - `gen:*:update` mutates files.
+  - `gen:*:check` fails on drift without mutating final working state.
+- CI and local checks use `check` targets, not `update` targets.
+- Failure output is concise and debuggable, with artifact paths for investigation.
+
+Invariants intake for enforceable checks:
+- Read `.claude/architecture/invariants.yaml` when present.
+- Enforce only machine-checkable entries marked enforceable.
+- Reject ambiguous or incomplete enforceable entries (fail-fast).
+
+## 10. Long-Term Roadmap
 
 Phase 0: Foundation stabilization
 - Preserve existing helper API.
@@ -165,7 +184,7 @@ Phase 5: Platform maturity
 - Policy-as-code checks in CI.
 - Add template variants only after strict-core maturity.
 
-## 10. Trade-off Record
+## 11. Trade-off Record
 
 Rejected: monolith framework
 - Too much coupling and dependency growth risk.
@@ -176,13 +195,13 @@ Rejected: plugin-first from day one
 Accepted: layered modules + strict core + optional extensions
 - Best balance of elegance, long-term scalability, and deterministic generation.
 
-## 11. Success Metrics
+## 12. Success Metrics
 
 - New CLI from scaffold to production-ready baseline in under 30 minutes.
 - All generated projects pass `task verify` in clean environments.
 - Cross-project automation can consume all command outputs via stable `--json`.
 - Upgrade path remains low-risk with explicit migration tooling and contracts.
 
-## 12. Next Step
+## 13. Next Step
 
 Proceed to implementation planning (`writing-plans`) for Phase 0-1 execution details, task breakdown, sequencing, and verification gates.
