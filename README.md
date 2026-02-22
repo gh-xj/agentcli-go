@@ -69,5 +69,5 @@ Generated projects include a deterministic smoke artifact contract:
 
 This repo also enforces framework JSON contracts in CI:
 - schemas: `schemas/doctor-report.schema.json`, `schemas/scaffold-version-output.schema.json`
-- fixtures: `testdata/contracts/*.ok.json`
-- gate: `task schema:check` (included in `task ci`)
+- fixtures: `testdata/contracts/*.ok.json`, `testdata/contracts/*.bad-*.json`
+- gates: `task schema:check` and `task schema:negative` (both included in `task ci`)

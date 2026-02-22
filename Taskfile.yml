@@ -42,9 +42,18 @@ tasks:
       - go run ./internal/tools/schemacheck --schema schemas/doctor-report.schema.json --input testdata/contracts/doctor-report.ok.json
       - go run ./internal/tools/schemacheck --schema schemas/scaffold-version-output.schema.json --input testdata/contracts/scaffold-version-output.ok.json
 
+  schema:negative:
+    desc: Ensure invalid contract fixtures fail validation
+    deps: [fmt:check]
+    cmds:
+      - sh -c '! go run ./internal/tools/schemacheck --schema schemas/doctor-report.schema.json --input testdata/contracts/doctor-report.bad-missing-findings.json'
+      - sh -c '! go run ./internal/tools/schemacheck --schema schemas/doctor-report.schema.json --input testdata/contracts/doctor-report.bad-schema-version.json'
+      - sh -c '! go run ./internal/tools/schemacheck --schema schemas/scaffold-version-output.schema.json --input testdata/contracts/scaffold-version-output.bad-missing-date.json'
+      - sh -c '! go run ./internal/tools/schemacheck --schema schemas/scaffold-version-output.schema.json --input testdata/contracts/scaffold-version-output.bad-schema-version.json'
+
   ci:
     desc: Canonical CI contract command
-    deps: [lint, test, build, smoke, schema:check]
+    deps: [lint, test, build, smoke, schema:check, schema:negative]
     cmds:
       - echo "ci checks passed"
 
