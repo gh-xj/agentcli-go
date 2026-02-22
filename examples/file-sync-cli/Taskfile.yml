@@ -1,0 +1,57 @@
+version: "3"
+
+tasks:
+  deps:
+    desc: Sync module dependencies
+    cmds:
+      - go mod tidy
+
+  fmt:
+    desc: Format Go files
+    cmds:
+      - gofmt -w $(find . -name '*.go' -type f)
+
+  fmt:check:
+    desc: Fail when gofmt would change files
+    cmds:
+      - test -z "$(gofmt -l $(find . -name '*.go' -type f))"
+
+  lint:
+    desc: Run static checks
+    deps: [deps, fmt:check]
+    cmds:
+      - go vet ./...
+
+  test:
+    desc: Run tests
+    deps: [deps, fmt:check]
+    cmds:
+      - go test ./...
+
+  build:
+    desc: Build binary
+    deps: [deps, fmt:check]
+    cmds:
+      - mkdir -p bin
+      - go build -o bin/file-sync-cli .
+
+  smoke:
+    desc: Deterministic smoke checks
+    deps: [build]
+    cmds:
+      - mkdir -p test/smoke
+      - rm -f test/smoke/version.output.json
+      - ./bin/file-sync-cli --json version > test/smoke/version.output.json
+      - go run ./internal/tools/smokecheck --schema test/smoke/version.schema.json --input test/smoke/version.output.json
+
+  ci:
+    desc: Canonical CI contract command
+    deps: [lint, test, build, smoke]
+    cmds:
+      - echo "ci checks passed"
+
+  verify:
+    desc: Local aggregate verification
+    deps: [ci]
+    cmds:
+      - echo "verify checks passed"

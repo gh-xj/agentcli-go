@@ -1,9 +1,19 @@
 # Examples
 
-Reference use-cases for `agentcli-go`.
+Runnable example CLIs generated with `agentcli`.
 
-- `file-sync/`: local deterministic file sync helper CLI
-- `http-client/`: API client with JSON output contract
-- `deploy-helper/`: deployment command orchestration with preflight checks
+## Included
 
-Each folder includes a brief scope and command contract notes.
+- `file-sync-cli/`: deterministic local file sync style workflow
+- `http-client-cli/`: API-request style command workflow
+- `deploy-helper-cli/`: preflight/deploy workflow skeleton
+
+## Verify
+
+Each example is independently runnable and verifiable:
+
+```bash
+cd examples/file-sync-cli && task verify
+cd examples/http-client-cli && task verify
+cd examples/deploy-helper-cli && task verify
+```
