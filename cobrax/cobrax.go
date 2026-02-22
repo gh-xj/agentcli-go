@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gh-xj/gokit"
+	agentcli "github.com/gh-xj/agentcli-go"
 	"github.com/spf13/cobra"
 )
 
@@ -13,14 +13,14 @@ import (
 type CommandSpec struct {
 	Use   string
 	Short string
-	Run   func(*gokit.AppContext, []string) error
+	Run   func(*agentcli.AppContext, []string) error
 }
 
 // RootSpec defines the root command contract and shared runtime settings.
 type RootSpec struct {
 	Use      string
 	Short    string
-	Meta     gokit.AppMeta
+	Meta     agentcli.AppMeta
 	Commands []CommandSpec
 }
 
@@ -42,7 +42,7 @@ func NewRoot(spec RootSpec) *cobra.Command {
 			Use:   cmdSpec.Use,
 			Short: cmdSpec.Short,
 			RunE: func(cmd *cobra.Command, args []string) error {
-				app := gokit.NewAppContext(cmd.Context())
+				app := agentcli.NewAppContext(cmd.Context())
 				app.Meta = spec.Meta
 
 				jsonFlag, _ := cmd.Flags().GetBool("json")
@@ -73,17 +73,17 @@ func Execute(spec RootSpec, args []string) int {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return resolveCode(err)
 	}
-	return gokit.ExitSuccess
+	return agentcli.ExitSuccess
 }
 
 func resolveCode(err error) int {
 	if err == nil {
-		return gokit.ExitSuccess
+		return agentcli.ExitSuccess
 	}
 	if code := usageErrorCode(err); code != 0 {
 		return code
 	}
-	return gokit.ResolveExitCode(err)
+	return agentcli.ResolveExitCode(err)
 }
 
 func usageErrorCode(err error) int {
@@ -100,7 +100,7 @@ func usageErrorCode(err error) int {
 	}
 	for _, marker := range usageIndicators {
 		if strings.Contains(strings.ToLower(text), marker) {
-			return gokit.ExitUsage
+			return agentcli.ExitUsage
 		}
 	}
 	return 0

@@ -1,4 +1,4 @@
-module github.com/gh-xj/gokit
+module github.com/gh-xj/agentcli-go
 
 go 1.25.5
 

@@ -1,4 +1,4 @@
-package gokit
+package agentcli
 
 import (
 	"os"
@@ -132,7 +132,7 @@ func TestScaffoldNewUsesCobraxRuntime(t *testing.T) {
 		t.Fatalf("read go.mod: %v", err)
 	}
 	text := string(goMod)
-	if !strings.Contains(text, "require github.com/gh-xj/gokit v0.2.0") {
+	if !strings.Contains(text, "require github.com/gh-xj/agentcli-go v0.2.0") {
 		t.Fatalf("missing phase2 requirement in go.mod: %s", text)
 	}
 
@@ -140,7 +140,7 @@ func TestScaffoldNewUsesCobraxRuntime(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read root.go: %v", err)
 	}
-	if !strings.Contains(string(rootCmd), `"github.com/gh-xj/gokit/cobrax"`) {
+	if !strings.Contains(string(rootCmd), `"github.com/gh-xj/agentcli-go/cobrax"`) {
 		t.Fatalf("expected cobrax runtime import: %s", string(rootCmd))
 	}
 }
@@ -159,7 +159,7 @@ func TestScaffoldAddCommandUsesCobraxSignature(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read command file: %v", err)
 	}
-	if !strings.Contains(string(cmdBody), "func(app *gokit.AppContext, args []string) error") {
+	if !strings.Contains(string(cmdBody), "func(app *agentcli.AppContext, args []string) error") {
 		t.Fatalf("expected cobrax command signature, got: %s", string(cmdBody))
 	}
 }

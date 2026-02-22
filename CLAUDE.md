@@ -1,10 +1,10 @@
-# gokit
+# agentcli-go
 
 Shared Go CLI helpers and framework modules for personal projects.
 
 ## Module
 
-`github.com/gh-xj/gokit` — import as `"github.com/gh-xj/gokit"`
+`github.com/gh-xj/agentcli-go` — import as `"github.com/gh-xj/agentcli-go"`
 
 ## Architecture
 
@@ -18,7 +18,7 @@ Shared Go CLI helpers and framework modules for personal projects.
 | `lifecycle.go` | `Hook`, `RunLifecycle` — preflight/run/postflight orchestration |
 | `errors.go` | `CLIError`, `ResolveExitCode` — typed error and exit mapping |
 | `scaffold.go` | `ScaffoldNew`, `ScaffoldAddCommand`, `Doctor` — golden project scaffolding and compliance checks |
-| `cmd/gokit/main.go` | `gokit` scaffold CLI entrypoint (`new`, `add command`, `doctor`) |
+| `cmd/agentcli/main.go` | `agentcli` scaffold CLI entrypoint (`new`, `add command`, `doctor`) |
 | `cobrax/cobrax.go` | Cobra runtime adapter with standardized persistent flags and exit-code mapping |
 | `configx/configx.go` | Deterministic config loading with precedence (`Defaults < File < Env < Flags`) |
 | `internal/tools/schemacheck/main.go` | JSON contract validator for schema-based CI checks |
@@ -28,7 +28,7 @@ Shared Go CLI helpers and framework modules for personal projects.
 
 ### API Design
 - All functions are exported (PascalCase) — this is a library, not a CLI
-- Keep the package flat: no sub-packages, everything in package `gokit`
+- Keep the package flat: no sub-packages, everything in package `agentcli`
 - Functions must be generic/reusable — no project-specific logic
 - `log.Fatal` is acceptable for `RequireArg` and `CheckDependency` (CLI-oriented library)
 
@@ -45,9 +45,9 @@ Shared Go CLI helpers and framework modules for personal projects.
 
 ### Versioning
 - Tag releases as `v0.x.y` (pre-1.0)
-- Consumers use `go get github.com/gh-xj/gokit@latest`
+- Consumers use `go get github.com/gh-xj/agentcli-go@latest`
 
 ### Consumers
-- `disk-manager` — uses aliases (`var parseArgs = gokit.ParseArgs`) for zero-churn migration
-- `xj-core-maintainer` (timing-fill) — calls `gokit.ParseArgs`/`gokit.GetArg` directly
-- `raycast go_scripts` — uses alias (`var runOsascript = gokit.RunOsascript`)
+- `disk-manager` — uses aliases (`var parseArgs = agentcli.ParseArgs`) for zero-churn migration
+- `xj-core-maintainer` (timing-fill) — calls `agentcli.ParseArgs`/`agentcli.GetArg` directly
+- `raycast go_scripts` — uses alias (`var runOsascript = agentcli.RunOsascript`)

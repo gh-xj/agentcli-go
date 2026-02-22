@@ -1,4 +1,4 @@
-package gokit
+package agentcli
 
 import (
 	"os"

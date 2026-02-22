@@ -1,11 +1,11 @@
-# gokit
+# agentcli-go
 
 Shared Go CLI helpers for personal projects. Eliminates copy-pasting `initLogger`, `parseArgs`, `fileExists`, etc. across CLIs.
 
 ## Install
 
 ```bash
-go get github.com/gh-xj/gokit@latest
+go get github.com/gh-xj/agentcli-go@latest
 ```
 
 ## Usage
@@ -14,19 +14,19 @@ go get github.com/gh-xj/gokit@latest
 package main
 
 import (
-    "github.com/gh-xj/gokit"
+    "github.com/gh-xj/agentcli-go"
     "github.com/rs/zerolog/log"
 )
 
 func main() {
-    gokit.InitLogger() // reads -v/--verbose from os.Args
+    agentcli.InitLogger() // reads -v/--verbose from os.Args
 
-    args := gokit.ParseArgs(os.Args[1:])
-    src := gokit.RequireArg(args, "src", "source directory")
-    dest := gokit.GetArg(args, "dest", "/tmp")
+    args := agentcli.ParseArgs(os.Args[1:])
+    src := agentcli.RequireArg(args, "src", "source directory")
+    dest := agentcli.GetArg(args, "dest", "/tmp")
 
-    gokit.CheckDependency("rsync", "brew install rsync")
-    gokit.EnsureDir(dest)
+    agentcli.CheckDependency("rsync", "brew install rsync")
+    agentcli.EnsureDir(dest)
 
     log.Info().Str("src", src).Str("dest", dest).Msg("ready")
 }
@@ -58,14 +58,14 @@ func main() {
 Use the scaffold CLI to generate and validate golden-layout projects:
 
 ```bash
-go run ./cmd/gokit new --module example.com/mycli mycli
-go run ./cmd/gokit add command --dir ./mycli sync-data
-go run ./cmd/gokit doctor --dir ./mycli --json
+go run ./cmd/agentcli new --module example.com/mycli mycli
+go run ./cmd/agentcli add command --dir ./mycli sync-data
+go run ./cmd/agentcli doctor --dir ./mycli --json
 ```
 
 Scaffold runtime is now `cobrax`-only.
 During local development (before a tagged release is available), generated `go.mod`
-automatically includes a local `replace github.com/gh-xj/gokit => <detected-path>` when possible.
+automatically includes a local `replace github.com/gh-xj/agentcli-go => <detected-path>` when possible.
 
 Generated projects include a deterministic smoke artifact contract:
 - writes `test/smoke/version.output.json`

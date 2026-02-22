@@ -1,7 +1,7 @@
-# gokit Framework Implementation Plan
+# agentcli-go Framework Implementation Plan
 
 Date: 2026-02-22
-Input design: `docs/plans/2026-02-22-gokit-framework-design.md`
+Input design: `docs/plans/2026-02-22-agentcli-framework-design.md`
 Planning scope: Phase 0 and Phase 1 (foundation + golden scaffold MVP)
 
 ## Status Snapshot (2026-02-22)
@@ -25,7 +25,7 @@ Planning scope: Phase 0 and Phase 1 (foundation + golden scaffold MVP)
 ## 1. Objective
 
 Execute the approved framework direction with minimal risk:
-- Preserve current `gokit` utility value.
+- Preserve current `agentcli` utility value.
 - Introduce framework contracts without breaking existing consumers.
 - Deliver strict scaffold + compliance tooling for deterministic AI-agent CLI generation.
 
@@ -34,13 +34,13 @@ Execute the approved framework direction with minimal risk:
 In scope:
 - Core contracts and package shaping for `core`.
 - Cobra adapter baseline (`cobrax`) for root command setup.
-- Scaffold generator MVP (`gokit new`, `gokit add command`, `gokit doctor`).
+- Scaffold generator MVP (`agentcli new`, `agentcli add command`, `agentcli doctor`).
 - Determinism and verification baseline in generated projects.
 
 Out of scope:
 - Full extension marketplace.
 - Template variants.
-- Advanced migration automation (`gokit migrate`) beyond basic warnings.
+- Advanced migration automation (`agentcli migrate`) beyond basic warnings.
 
 ## 3. Milestones
 
@@ -60,9 +60,9 @@ M2: Cobra adapter MVP (2-3 days)
 - Add command execution wrapper with error->exit mapping.
 
 M3: Scaffold MVP (3-5 days)
-- `gokit new <name>` generates golden layout.
-- `gokit add command <name>` adds command skeleton + wiring.
-- `gokit doctor` validates structure/contracts; JSON output supported.
+- `agentcli new <name>` generates golden layout.
+- `agentcli add command <name>` adds command skeleton + wiring.
+- `agentcli doctor` validates structure/contracts; JSON output supported.
 
 M4: Verification baseline (2-3 days)
 - Add generated Taskfile gates (`fmt`, `lint`, `test`, `build`, `smoke`, `verify`).
@@ -159,8 +159,8 @@ Risk: Determinism regressions via command output changes.
 
 ## 9. Deliverables
 
-- `docs/plans/2026-02-22-gokit-framework-design.md` (completed)
-- `docs/plans/2026-02-22-gokit-framework-implementation-plan.md` (this file)
+- `docs/plans/2026-02-22-agentcli-framework-design.md` (completed)
+- `docs/plans/2026-02-22-agentcli-framework-implementation-plan.md` (this file)
 - Phase 0-1 PR series with verification evidence
 
 ## 10. Definition of Done (Phase 1)

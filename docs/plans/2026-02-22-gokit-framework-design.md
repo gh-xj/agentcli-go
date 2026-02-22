@@ -1,12 +1,12 @@
-# gokit Framework Design
+# agentcli-go Framework Design
 
 Date: 2026-02-22
 Status: Approved (design)
-Scope: Build `gokit` into a long-term, elegant, deterministic Go CLI framework suitable for AI-agent generated CLIs.
+Scope: Build `agentcli` into a long-term, elegant, deterministic Go CLI framework suitable for AI-agent generated CLIs.
 
 ## 1. Goals
 
-- Make `gokit` the foundational framework for fast, deterministic Go CLIs.
+- Make `agentcli` the foundational framework for fast, deterministic Go CLIs.
 - Optimize for AI-agent generation: predictable structure, stable interfaces, machine-readable outputs.
 - Outperform typical Python scripting stacks on reliability, performance, and maintainability.
 - Preserve long-term elegance by enforcing a strict core with optional extensions.
@@ -45,21 +45,21 @@ Conclusions:
 
 Recommended module roadmap:
 
-1. `github.com/gh-xj/gokit/core`
+1. `github.com/gh-xj/agentcli-go/core`
 - Current reusable helpers plus runtime contracts.
 - `AppContext`, lifecycle hooks, typed error model, shared IO contracts.
 
-2. `github.com/gh-xj/gokit/cobrax`
+2. `github.com/gh-xj/agentcli-go/cobrax`
 - Cobra adapter with standardized root setup and persistent flags.
 - Shared usage/help template and completion integration.
 
-3. `github.com/gh-xj/gokit/configx`
+3. `github.com/gh-xj/agentcli-go/configx`
 - Typed config loading with deterministic precedence:
   defaults < config file < env < flags.
 
-4. `github.com/gh-xj/gokit/scaffold`
+4. `github.com/gh-xj/agentcli-go/scaffold`
 - Project generator and compliance tooling.
-- `gokit new`, `gokit add command`, `gokit doctor`.
+- `agentcli new`, `agentcli add command`, `agentcli doctor`.
 
 Optional extension modules (later):
 - `sshx`, `httpx`, `telemetryx`, `updaterx`.
@@ -131,7 +131,7 @@ Testing requirements:
 ## 8. Agent-First Capabilities
 
 - `--json` mandatory for every command, with schema versioning.
-- `gokit doctor --json` for machine-parseable diagnostics.
+- `agentcli doctor --json` for machine-parseable diagnostics.
 - Scaffold emits predictable file organization and command skeletons.
 - Compliance checks enforce layout and contract invariants.
 
@@ -163,7 +163,7 @@ Phase 0: Foundation stabilization
 Phase 1: Golden scaffold MVP
 - Deliver strict template generation.
 - Add verification gates and determinism checks.
-- Ship `gokit doctor` compliance baseline.
+- Ship `agentcli doctor` compliance baseline.
 
 Phase 2: Runtime standardization
 - Deliver `cobrax` + `configx`.
@@ -175,7 +175,7 @@ Phase 3: Extension ecosystem
 - Define extension registration manifest and lifecycle boundaries.
 
 Phase 4: Migration + governance
-- Add `gokit migrate`.
+- Add `agentcli migrate`.
 - Formalize semver policy and deprecation windows.
 - Add ADR process for contract changes.
 

@@ -3,7 +3,7 @@ package cobrax
 import (
 	"testing"
 
-	"github.com/gh-xj/gokit"
+	agentcli "github.com/gh-xj/agentcli-go"
 )
 
 func TestNewRootHasRequiredPersistentFlags(t *testing.T) {
@@ -19,20 +19,20 @@ func TestNewRootHasRequiredPersistentFlags(t *testing.T) {
 func TestExecuteSuccess(t *testing.T) {
 	spec := RootSpec{
 		Use: "demo",
-		Meta: gokit.AppMeta{
+		Meta: agentcli.AppMeta{
 			Name: "demo",
 		},
 		Commands: []CommandSpec{
 			{
 				Use: "ping",
-				Run: func(*gokit.AppContext, []string) error {
+				Run: func(*agentcli.AppContext, []string) error {
 					return nil
 				},
 			},
 		},
 	}
 	code := Execute(spec, []string{"ping"})
-	if code != gokit.ExitSuccess {
+	if code != agentcli.ExitSuccess {
 		t.Fatalf("unexpected exit code: %d", code)
 	}
 }
@@ -43,14 +43,14 @@ func TestExecuteUsageErrorForUnknownCommand(t *testing.T) {
 		Commands: []CommandSpec{
 			{
 				Use: "ping",
-				Run: func(*gokit.AppContext, []string) error {
+				Run: func(*agentcli.AppContext, []string) error {
 					return nil
 				},
 			},
 		},
 	}
 	code := Execute(spec, []string{"unknown"})
-	if code != gokit.ExitUsage {
+	if code != agentcli.ExitUsage {
 		t.Fatalf("expected usage exit code, got %d", code)
 	}
 }
@@ -61,14 +61,14 @@ func TestExecuteTypedExitCode(t *testing.T) {
 		Commands: []CommandSpec{
 			{
 				Use: "fail",
-				Run: func(*gokit.AppContext, []string) error {
-					return gokit.NewCLIError(gokit.ExitPreflightDependency, "preflight", "missing dependency", nil)
+				Run: func(*agentcli.AppContext, []string) error {
+					return agentcli.NewCLIError(agentcli.ExitPreflightDependency, "preflight", "missing dependency", nil)
 				},
 			},
 		},
 	}
 	code := Execute(spec, []string{"fail"})
-	if code != gokit.ExitPreflightDependency {
-		t.Fatalf("expected %d, got %d", gokit.ExitPreflightDependency, code)
+	if code != agentcli.ExitPreflightDependency {
+		t.Fatalf("expected %d, got %d", agentcli.ExitPreflightDependency, code)
 	}
 }

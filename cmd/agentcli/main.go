@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gh-xj/gokit"
+	agentcli "github.com/gh-xj/agentcli-go"
 )
 
 func main() {
@@ -14,7 +14,7 @@ func main() {
 func run(args []string) int {
 	if len(args) == 0 {
 		printUsage()
-		return gokit.ExitUsage
+		return agentcli.ExitUsage
 	}
 
 	switch args[0] {
@@ -26,11 +26,11 @@ func run(args []string) int {
 		return runDoctor(args[1:])
 	case "-h", "--help", "help":
 		printUsage()
-		return gokit.ExitSuccess
+		return agentcli.ExitSuccess
 	default:
 		fmt.Fprintf(os.Stderr, "unknown subcommand: %s\n", args[0])
 		printUsage()
-		return gokit.ExitUsage
+		return agentcli.ExitUsage
 	}
 }
 
@@ -44,14 +44,14 @@ func runNew(args []string) int {
 		case "--dir":
 			if i+1 >= len(args) {
 				fmt.Fprintln(os.Stderr, "--dir requires a value")
-				return gokit.ExitUsage
+				return agentcli.ExitUsage
 			}
 			baseDir = args[i+1]
 			i++
 		case "--module":
 			if i+1 >= len(args) {
 				fmt.Fprintln(os.Stderr, "--module requires a value")
-				return gokit.ExitUsage
+				return agentcli.ExitUsage
 			}
 			module = args[i+1]
 			i++
@@ -60,33 +60,33 @@ func runNew(args []string) int {
 				name = args[i]
 			} else {
 				fmt.Fprintf(os.Stderr, "unexpected argument: %s\n", args[i])
-				return gokit.ExitUsage
+				return agentcli.ExitUsage
 			}
 		}
 	}
 
 	if name == "" {
-		fmt.Fprintln(os.Stderr, "usage: gokit new [--dir path] [--module module/path] <name>")
-		return gokit.ExitUsage
+		fmt.Fprintln(os.Stderr, "usage: agentcli new [--dir path] [--module module/path] <name>")
+		return agentcli.ExitUsage
 	}
 
-	root, err := gokit.ScaffoldNew(baseDir, name, module)
+	root, err := agentcli.ScaffoldNew(baseDir, name, module)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
-		return gokit.ExitFailure
+		return agentcli.ExitFailure
 	}
 	fmt.Fprintf(os.Stdout, "created project: %s\n", root)
-	return gokit.ExitSuccess
+	return agentcli.ExitSuccess
 }
 
 func runAdd(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: gokit add command [--dir path] <name>")
-		return gokit.ExitUsage
+		fmt.Fprintln(os.Stderr, "usage: agentcli add command [--dir path] <name>")
+		return agentcli.ExitUsage
 	}
 	if args[0] != "command" {
 		fmt.Fprintf(os.Stderr, "unknown add target: %s\n", args[0])
-		return gokit.ExitUsage
+		return agentcli.ExitUsage
 	}
 
 	rootDir := "."
@@ -96,7 +96,7 @@ func runAdd(args []string) int {
 		case "--dir":
 			if i+1 >= len(args) {
 				fmt.Fprintln(os.Stderr, "--dir requires a value")
-				return gokit.ExitUsage
+				return agentcli.ExitUsage
 			}
 			rootDir = args[i+1]
 			i++
@@ -105,21 +105,21 @@ func runAdd(args []string) int {
 				name = args[i]
 			} else {
 				fmt.Fprintf(os.Stderr, "unexpected argument: %s\n", args[i])
-				return gokit.ExitUsage
+				return agentcli.ExitUsage
 			}
 		}
 	}
 
 	if name == "" {
-		fmt.Fprintln(os.Stderr, "usage: gokit add command [--dir path] <name>")
-		return gokit.ExitUsage
+		fmt.Fprintln(os.Stderr, "usage: agentcli add command [--dir path] <name>")
+		return agentcli.ExitUsage
 	}
-	if err := gokit.ScaffoldAddCommand(rootDir, name); err != nil {
+	if err := agentcli.ScaffoldAddCommand(rootDir, name); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
-		return gokit.ExitFailure
+		return agentcli.ExitFailure
 	}
 	fmt.Fprintf(os.Stdout, "added command: %s\n", name)
-	return gokit.ExitSuccess
+	return agentcli.ExitSuccess
 }
 
 func runDoctor(args []string) int {
@@ -130,7 +130,7 @@ func runDoctor(args []string) int {
 		case "--dir":
 			if i+1 >= len(args) {
 				fmt.Fprintln(os.Stderr, "--dir requires a value")
-				return gokit.ExitUsage
+				return agentcli.ExitUsage
 			}
 			rootDir = args[i+1]
 			i++
@@ -138,16 +138,16 @@ func runDoctor(args []string) int {
 			jsonOutput = true
 		default:
 			fmt.Fprintf(os.Stderr, "unexpected argument: %s\n", args[i])
-			return gokit.ExitUsage
+			return agentcli.ExitUsage
 		}
 	}
 
-	report := gokit.Doctor(rootDir)
+	report := agentcli.Doctor(rootDir)
 	if jsonOutput {
 		out, err := report.JSON()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
-			return gokit.ExitFailure
+			return agentcli.ExitFailure
 		}
 		fmt.Fprintln(os.Stdout, out)
 	} else {
@@ -162,15 +162,15 @@ func runDoctor(args []string) int {
 	}
 
 	if report.OK {
-		return gokit.ExitSuccess
+		return agentcli.ExitSuccess
 	}
-	return gokit.ExitFailure
+	return agentcli.ExitFailure
 }
 
 func printUsage() {
-	fmt.Fprintln(os.Stderr, "gokit scaffold CLI")
+	fmt.Fprintln(os.Stderr, "agentcli scaffold CLI")
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintln(os.Stderr, "  gokit new [--dir path] [--module module/path] <name>")
-	fmt.Fprintln(os.Stderr, "  gokit add command [--dir path] <name>")
-	fmt.Fprintln(os.Stderr, "  gokit doctor [--dir path] [--json]")
+	fmt.Fprintln(os.Stderr, "  agentcli new [--dir path] [--module module/path] <name>")
+	fmt.Fprintln(os.Stderr, "  agentcli add command [--dir path] <name>")
+	fmt.Fprintln(os.Stderr, "  agentcli doctor [--dir path] [--json]")
 }
