@@ -123,7 +123,14 @@ log "pushing branch"
 if [[ "${DRY_RUN}" = "1" ]]; then
   log "dry run: skip push"
 else
-  git push -u origin "${LOOP_BRANCH}" --force-with-lease
+  if ! git push -u origin "${LOOP_BRANCH}" --force-with-lease; then
+    log "push lease failed; syncing remote branch and retrying"
+    git fetch origin "${LOOP_BRANCH}" || true
+    if ! git push -u origin "${LOOP_BRANCH}" --force-with-lease; then
+      log "lease retry failed; forcing push for dedicated autofix branch"
+      git push -u origin "${LOOP_BRANCH}" --force
+    fi
+  fi
 fi
 
 if [[ "${DRY_RUN}" = "1" ]]; then
