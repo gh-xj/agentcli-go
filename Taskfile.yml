@@ -5,6 +5,12 @@ vars:
   TAP_REPO: gh-xj/homebrew-tap
   TAP_BRANCH: main
   TAP_PUSH: "0"
+  LOOP_REPO_ROOT: .
+  LOOP_THRESHOLD: "9.0"
+  LOOP_MAX_ITERATIONS: "3"
+  LOOP_JUDGE_ITERATIONS: "1"
+  LOOP_API_ADDR: "127.0.0.1:7878"
+
 
 tasks:
   hygiene:
@@ -22,33 +28,34 @@ tasks:
     cmds:
       - test -z "$(gofmt -l $(find . -name '*.go' -type f))"
 
+  preflight:
+    desc: Run baseline hygiene and format checks once
+    deps: [hygiene, fmt:check]
+    cmds:
+      - echo "preflight checks passed"
+
   lint:
     desc: Run static checks
-    deps: [fmt:check]
     cmds:
       - go vet ./...
 
   test:
     desc: Run unit tests
-    deps: [fmt:check]
     cmds:
       - go test ./...
 
   build:
     desc: Ensure package builds
-    deps: [fmt:check]
     cmds:
       - go build ./...
 
   smoke:
     desc: Run deterministic smoke checks
-    deps: [fmt:check]
     cmds:
       - go test ./... -run 'Test(ParseArgsBasic|RunCommandSuccess|RunLifecycleOrder|ResolveExitCode)$'
 
   schema:check:
     desc: Validate JSON contracts against schemas
-    deps: [fmt:check]
     cmds:
       - go run ./internal/tools/schemacheck --schema schemas/doctor-report.schema.json --input testdata/contracts/doctor-report.ok.json
       - go run ./internal/tools/schemacheck --schema schemas/scaffold-version-output.schema.json --input testdata/contracts/scaffold-version-output.ok.json
@@ -58,7 +65,6 @@ tasks:
 
   schema:negative:
     desc: Ensure invalid contract fixtures fail validation
-    deps: [fmt:check]
     cmds:
       - sh -c '! go run ./internal/tools/schemacheck --schema schemas/doctor-report.schema.json --input testdata/contracts/doctor-report.bad-missing-findings.json'
       - sh -c '! go run ./internal/tools/schemacheck --schema schemas/doctor-report.schema.json --input testdata/contracts/doctor-report.bad-schema-version.json'
@@ -70,13 +76,12 @@ tasks:
 
   docs:check:
     desc: Fail when skill docs drift from CLI help signatures
-    deps: [fmt:check]
     cmds:
       - go run ./internal/tools/doccheck --repo-root .
 
   ci:
     desc: Canonical CI contract command
-    deps: [hygiene, lint, test, build, smoke, schema:check, schema:negative, docs:check]
+    deps: [preflight, lint, test, build, smoke, schema:check, schema:negative, docs:check]
     cmds:
       - echo "ci checks passed"
 
@@ -248,62 +253,62 @@ tasks:
   loop:run:
     desc: Run onboarding scenario and emit report artifacts
     cmds:
-      - go run ./cmd/agentcli loop run --repo-root . --threshold 9.0 --max-iterations 1
+      - go run ./cmd/agentcli loop run --repo-root {{.LOOP_REPO_ROOT}} --threshold {{.LOOP_THRESHOLD}} --max-iterations {{.LOOP_JUDGE_ITERATIONS}}
 
   loop:serve:
     desc: Start local loop API server
     cmds:
-      - go run ./cmd/agentcli loop-server --addr 127.0.0.1:7878 --repo-root .
+      - go run ./cmd/agentcli loop-server --addr {{.LOOP_API_ADDR}} --repo-root {{.LOOP_REPO_ROOT}}
 
   loop:judge:
     desc: Run onboarding judge-only gate
     cmds:
-      - go run ./cmd/agentcli loop judge --repo-root . --threshold 9.0 --max-iterations 1
+      - go run ./cmd/agentcli loop judge --repo-root {{.LOOP_REPO_ROOT}} --threshold {{.LOOP_THRESHOLD}} --max-iterations {{.LOOP_JUDGE_ITERATIONS}}
 
   loop:doctor:
     desc: Check lean/lab readiness for verification loop
     cmds:
-      - go run ./cmd/agentcli loop doctor --repo-root .
+      - go run ./cmd/agentcli loop doctor --repo-root {{.LOOP_REPO_ROOT}}
 
   loop:doctor:md:
     desc: Render doctor report in markdown
     cmds:
-      - go run ./cmd/agentcli loop doctor --repo-root . --md
+      - go run ./cmd/agentcli loop doctor --repo-root {{.LOOP_REPO_ROOT}} --md
 
   loop:clean:
     desc: Clean stale loop compare artifacts (keeps latest 20)
     cmds:
-      - go run ./internal/tools/loopclean --repo-root . --keep-compare 20
+      - go run ./internal/tools/loopclean --repo-root {{.LOOP_REPO_ROOT}} --keep-compare 20
 
   loop:judge:api:
     desc: Run onboarding judge via local loop API
     cmds:
-      - go run ./cmd/agentcli loop judge --api http://127.0.0.1:7878 --repo-root . --threshold 9.0 --max-iterations 1
+      - go run ./cmd/agentcli loop judge --api http://{{.LOOP_API_ADDR}} --repo-root {{.LOOP_REPO_ROOT}} --threshold {{.LOOP_THRESHOLD}} --max-iterations {{.LOOP_JUDGE_ITERATIONS}}
 
   loop:autofix:
     desc: Run onboarding loop with autofix and branch commit workflow
     cmds:
-      - go run ./cmd/agentcli loop autofix --repo-root . --threshold 9.0 --max-iterations 3
+      - go run ./cmd/agentcli loop autofix --repo-root {{.LOOP_REPO_ROOT}} --threshold {{.LOOP_THRESHOLD}} --max-iterations {{.LOOP_MAX_ITERATIONS}}
 
   loop:all:
     desc: Full onboarding reinforcement loop (alias of autofix)
     cmds:
-      - go run ./cmd/agentcli loop autofix --repo-root . --threshold 9.0 --max-iterations 3
+      - go run ./cmd/agentcli loop autofix --repo-root {{.LOOP_REPO_ROOT}} --threshold {{.LOOP_THRESHOLD}} --max-iterations {{.LOOP_MAX_ITERATIONS}}
 
   loop:committee:
     desc: Lab mode with external role config and verbose per-iteration artifacts
     cmds:
-      - go run ./cmd/agentcli loop lab autofix --repo-root . --mode committee --role-config ./configs/committee.roles.example.json --threshold 9.0 --max-iterations 3 --verbose-artifacts
+      - go run ./cmd/agentcli loop lab autofix --repo-root {{.LOOP_REPO_ROOT}} --mode committee --role-config ./configs/committee.roles.example.json --threshold {{.LOOP_THRESHOLD}} --max-iterations {{.LOOP_MAX_ITERATIONS}} --verbose-artifacts
 
   loop:committee:judge:
     desc: Lean committee judge-only gate (no verbose artifacts)
     cmds:
-      - go run ./cmd/agentcli loop judge --repo-root . --threshold 9.0 --max-iterations 1
+      - go run ./cmd/agentcli loop judge --repo-root {{.LOOP_REPO_ROOT}} --threshold {{.LOOP_THRESHOLD}} --max-iterations {{.LOOP_JUDGE_ITERATIONS}}
 
   loop:benchmark:
     desc: Run deterministic benchmark summary for classic vs committee
     cmds:
-      - go run ./internal/tools/loopbench --mode run --repo-root . --output .docs/onboarding-loop/benchmarks/latest.json
+      - go run ./internal/tools/loopbench --mode run --repo-root {{.LOOP_REPO_ROOT}} --output .docs/onboarding-loop/benchmarks/latest.json
       - go run ./internal/tools/schemacheck --schema schemas/loop-benchmark-summary.schema.json --input .docs/onboarding-loop/benchmarks/latest.json
 
   loop:benchmark:check:
