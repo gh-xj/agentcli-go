@@ -234,3 +234,14 @@ Before opening a PR:
 1. Keep scaffold/runtime behavior deterministic.
 2. Update schema fixtures when output contracts change.
 3. Run `task ci`.
+
+## Maintainer Release Flow
+
+```bash
+task release VERSION=v0.2.2
+```
+
+Requirements:
+
+- `docs/releases/v0.2.2.md` exists
+- GitHub CLI (`gh`) authenticated for `gh-xj/agentcli-go`

@@ -69,3 +69,73 @@ tasks:
     cmds:
       - test -z "$(git status --porcelain)"
       - echo "release prep passed"
+
+  release:build:
+    desc: Build multi-arch release artifacts into dist/{{.VERSION}}
+    requires:
+      vars: [VERSION]
+    cmds:
+      - test -n "{{.VERSION}}"
+      - |
+        sh -c 'case "{{.VERSION}}" in
+          v*) ;;
+          *) echo "VERSION must start with v (example v0.2.2)" >&2; exit 1 ;;
+        esac'
+      - mkdir -p dist/{{.VERSION}}
+      - |
+        set -euo pipefail
+        for target in "darwin amd64" "darwin arm64" "linux amd64" "linux arm64"; do
+          os=$(echo "$target" | awk '{print $1}')
+          arch=$(echo "$target" | awk '{print $2}')
+          outdir="dist/{{.VERSION}}/agentcli_${os}_${arch}"
+          mkdir -p "$outdir"
+          GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -o "$outdir/agentcli" ./cmd/agentcli
+          cp LICENSE "$outdir/"
+          tar -C "dist/{{.VERSION}}" -czf "dist/{{.VERSION}}/agentcli_{{.VERSION}}_${os}_${arch}.tar.gz" "agentcli_${os}_${arch}"
+        done
+      - sh -c 'cd dist/{{.VERSION}} && shasum -a 256 agentcli_{{.VERSION}}_*.tar.gz > checksums.txt'
+      - echo "release artifacts prepared in dist/{{.VERSION}}"
+
+  release:tag:
+    desc: Create and push git tag for VERSION
+    requires:
+      vars: [VERSION]
+    cmds:
+      - test -n "{{.VERSION}}"
+      - git tag -a {{.VERSION}} -m "{{.VERSION}}"
+      - git push origin {{.VERSION}}
+
+  release:publish:
+    desc: Create GitHub release for VERSION using docs/releases/{{.VERSION}}.md
+    requires:
+      vars: [VERSION]
+    cmds:
+      - test -n "{{.VERSION}}"
+      - test -f docs/releases/{{.VERSION}}.md
+      - test -f dist/{{.VERSION}}/checksums.txt
+      - >
+        gh release create {{.VERSION}}
+        dist/{{.VERSION}}/agentcli_{{.VERSION}}_darwin_amd64.tar.gz
+        dist/{{.VERSION}}/agentcli_{{.VERSION}}_darwin_arm64.tar.gz
+        dist/{{.VERSION}}/agentcli_{{.VERSION}}_linux_amd64.tar.gz
+        dist/{{.VERSION}}/agentcli_{{.VERSION}}_linux_arm64.tar.gz
+        dist/{{.VERSION}}/checksums.txt
+        --repo gh-xj/agentcli-go
+        --title "agentcli-go {{.VERSION}}"
+        --notes-file docs/releases/{{.VERSION}}.md
+
+  release:
+    desc: End-to-end release flow (prep + build + tag + publish)
+    requires:
+      vars: [VERSION]
+    cmds:
+      - task: release:prep
+      - task: release:build
+        vars:
+          VERSION: "{{.VERSION}}"
+      - task: release:tag
+        vars:
+          VERSION: "{{.VERSION}}"
+      - task: release:publish
+        vars:
+          VERSION: "{{.VERSION}}"
