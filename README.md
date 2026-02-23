@@ -7,59 +7,55 @@
 
 Deterministic Go CLI framework for human + AI-agent teams.
 
-Scaffold fast, verify by contract, ship with confidence.
+`agentcli-go` helps you scaffold, verify, and evolve CLIs with explicit contracts so automation stays reliable as projects grow.
 
-## Project Health
+## Why agentcli-go
 
-- License: [Apache-2.0](./LICENSE)
-- Security policy: [SECURITY.md](./SECURITY.md)
-- Contribution guide: [CONTRIBUTING.md](./CONTRIBUTING.md)
-- Code of Conduct: [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
-- Changelog: [CHANGELOG.md](./CHANGELOG.md)
-- CI workflow: [`.github/workflows/ci.yml`](./.github/workflows/ci.yml)
+- Build CLIs quickly with a deterministic scaffold
+- Enforce machine-readable contracts (`doctor --json`)
+- Catch regressions early with schema-backed CI gates
+- Keep AI-agent workflows predictable and auditable
+
+## Why This Beats Script-Based Workflows
+
+Compared with ad-hoc Bash/Python scripts, `agentcli-go` gives you:
+
+- compile-time safety instead of runtime surprises
+- stable command contracts instead of implicit behavior drift
+- deterministic verification (`task ci`, `task verify`) instead of best-effort checks
+- a repeatable project shape that agents and humans can both maintain
 
 ## Installation
 
-### Stable Release (Recommended)
+### 1) Install with Go (Recommended)
 
-Install the scaffold CLI (Homebrew):
+```bash
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.0
+```
+
+Add framework library dependency in your project:
+
+```bash
+go get github.com/gh-xj/agentcli-go@v0.2.0
+```
+
+### 2) Install with Homebrew
 
 ```bash
 brew tap gh-xj/tap
 brew install agentcli
 ```
 
-Install the scaffold CLI (`go install`):
-
-```bash
-go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.0
-```
-
-Add the framework library to your Go project:
-
-```bash
-go get github.com/gh-xj/agentcli-go@v0.2.0
-```
-
 ### Development Version
-
-If you want the latest unreleased changes from `main`:
 
 ```bash
 go install github.com/gh-xj/agentcli-go/cmd/agentcli@main
 go get github.com/gh-xj/agentcli-go@main
 ```
 
-Note: `main` may include in-progress changes. Use it for early testing.
-
-### Requirements
-
-- Go 1.25+
-- `task` (recommended for verification workflow)
-
 ## Quickstart
 
-Generate a new CLI project:
+Create a new CLI:
 
 ```bash
 agentcli new --module example.com/mycli mycli
@@ -71,53 +67,25 @@ Add a command:
 agentcli add command --dir ./mycli sync-data
 ```
 
-Run health checks:
+Check contract health:
 
 ```bash
 agentcli doctor --dir ./mycli --json
 ```
 
-Run full project verification:
+Run full verification:
 
 ```bash
 cd mycli
 task verify
 ```
 
-## Prompt Starter (AI Onboarding)
-
-Use this style to onboard with AI quickly, similar to `obra/superpowers`.
-
-Copy-paste this into your coding agent:
-
-```text
-You are helping me onboard to agentcli-go.
-Goal: create a deterministic Go CLI and keep it contract-compliant.
-
-Do these steps in order and show command output summaries:
-1) Check my environment and install agentcli if missing.
-2) Run: agentcli new --module example.com/mycli mycli
-3) Run: agentcli add command --dir ./mycli sync-data
-4) Run: agentcli doctor --dir ./mycli --json
-5) Run: cd mycli && task verify
-6) Explain any failures and fix them.
-
-Constraints:
-- Keep output deterministic.
-- Preserve schema/CI contracts.
-- Do not skip verification.
-```
-
-For reusable prompt files, see [`prompts/agentcli-onboarding.prompt.md`](./prompts/agentcli-onboarding.prompt.md).
-
 ## First 5 Minutes
-
-Copy-paste this end-to-end:
 
 ```bash
 set -e
-brew tap gh-xj/tap
-brew install agentcli
+
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.0
 
 mkdir -p /tmp/agentcli-demo && cd /tmp/agentcli-demo
 agentcli new --module example.com/demo demo
@@ -126,41 +94,27 @@ agentcli doctor --dir ./demo --json
 cd demo && task verify
 ```
 
-## Documentation
+## AI Prompt Starter
 
-- Docs home: [`docs/site/index.md`](./docs/site/index.md)
-- Getting started: [`docs/site/getting-started.md`](./docs/site/getting-started.md)
-- AI agent playbook: [`docs/site/ai-agent-playbook.md`](./docs/site/ai-agent-playbook.md)
-- Example catalog: [`examples/README.md`](./examples/README.md)
+Copy-paste into your coding agent:
 
-## Why agentcli-go
+```text
+You are helping me onboard to agentcli-go.
+Goal: create a deterministic Go CLI and keep it contract-compliant.
 
-Most CLI projects start fast and drift later.
-`agentcli-go` is built to prevent that drift from day one.
+Do these steps in order and summarize outputs:
+1) agentcli new --module example.com/mycli mycli
+2) agentcli add command --dir ./mycli sync-data
+3) agentcli doctor --dir ./mycli --json
+4) cd mycli && task verify
 
-- deterministic scaffolding for every new CLI
-- machine-readable health checks (`doctor --json`)
-- schema-validated smoke outputs
-- CI gates with positive + negative regression checks
-- Go compile-time safety for agent-generated changes
+If anything fails, fix root cause and re-run verification.
+Do not skip contract checks.
+```
 
-## AI-Agent Onboarding
+Reusable prompt: [`prompts/agentcli-onboarding.prompt.md`](./prompts/agentcli-onboarding.prompt.md)
 
-Recommended agent workflow:
-
-1. Run `agentcli new` for a contract-compliant baseline.
-2. Use `agentcli add command` for feature growth.
-3. Run `agentcli doctor --json` before/after edits.
-4. Enforce `task ci` as the canonical pass/fail gate.
-
-Why this works for agents:
-
-- predictable layout
-- deterministic output paths
-- schema-backed JSON outputs
-- low-ambiguity verification contract
-
-## What You Get
+## Core Capabilities
 
 ### Scaffold CLI
 
@@ -170,8 +124,8 @@ Why this works for agents:
 
 ### Runtime Modules
 
-- `cobrax`: standardized Cobra root flags + deterministic exit-code handling
-- `configx`: deterministic config merge (`Defaults < File < Env < Flags`)
+- `cobrax`: standardized Cobra runtime + deterministic exit handling
+- `configx`: deterministic config layering (`Defaults < File < Env < Flags`)
 
 ### Core Helpers
 
@@ -181,67 +135,51 @@ Why this works for agents:
 - fs: `FileExists`, `EnsureDir`, `GetBaseName`
 - runtime contracts: `NewAppContext`, `RunLifecycle`, `NewCLIError`, `ResolveExitCode`
 
-## Generated Project Contract
+## Verification Contract
 
-Each generated project includes:
+Generated projects include:
 
-- fixed scaffold layout
 - deterministic smoke artifact: `test/smoke/version.output.json`
 - schema file: `test/smoke/version.schema.json`
-- canonical task gates: `fmt`, `lint`, `test`, `build`, `smoke`, `ci`, `verify`
+- canonical gates: `fmt`, `lint`, `test`, `build`, `smoke`, `ci`, `verify`
 
-Example structure:
+This repository enforces output contracts using:
 
-```text
-mycli/
-  cmd/
-    root.go
-    <command>.go
-  internal/
-    app/
-    config/
-    io/
-    tools/smokecheck/
-  pkg/version/
-  test/e2e/
-  test/smoke/
-  Taskfile.yml
-  main.go
-```
-
-## Verification Model
-
-This repository enforces JSON output contracts in CI.
-
-- schemas: `schemas/doctor-report.schema.json`, `schemas/scaffold-version-output.schema.json`
+- `schemas/doctor-report.schema.json`
+- `schemas/scaffold-version-output.schema.json`
 - positive fixtures: `testdata/contracts/*.ok.json`
 - negative fixtures: `testdata/contracts/*.bad-*.json`
-- gates: `task schema:check`, `task schema:negative` (both part of `task ci`)
 
-## Minimal Library Example
+## Examples
 
-```go
-package main
+Runnable examples:
 
-import (
-	agentcli "github.com/gh-xj/agentcli-go"
-	"github.com/rs/zerolog/log"
-)
+- [`examples/file-sync-cli`](./examples/file-sync-cli)
+- [`examples/http-client-cli`](./examples/http-client-cli)
+- [`examples/deploy-helper-cli`](./examples/deploy-helper-cli)
 
-func main() {
-	agentcli.InitLogger()
-	args := agentcli.ParseArgs([]string{"--src", "/tmp/in"})
-	src := agentcli.RequireArg(args, "src", "source directory")
-	log.Info().Str("src", src).Msg("ready")
-}
-```
+Examples index: [`examples/README.md`](./examples/README.md)
+
+## Documentation
+
+Simple docs entry points:
+
+- [`docs/site/index.md`](./docs/site/index.md)
+- [`docs/site/getting-started.md`](./docs/site/getting-started.md)
+- [`docs/site/ai-agent-playbook.md`](./docs/site/ai-agent-playbook.md)
+
+## Project Health
+
+- License: [Apache-2.0](./LICENSE)
+- Security policy: [SECURITY.md](./SECURITY.md)
+- Contribution guide: [CONTRIBUTING.md](./CONTRIBUTING.md)
+- Code of Conduct: [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
+- Changelog: [CHANGELOG.md](./CHANGELOG.md)
 
 ## Contributing
 
-Issues and PRs are welcome.
-
 Before opening a PR:
 
-1. Keep scaffold/runtime contracts deterministic.
+1. Keep scaffold/runtime behavior deterministic.
 2. Update schema fixtures when output contracts change.
 3. Run `task ci`.
