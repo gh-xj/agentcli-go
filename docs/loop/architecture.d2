@@ -1,0 +1,82 @@
+direction: right
+
+title: "agentcli-go Verification Loop System"
+
+user: "Human / AI Agent"
+
+cli: {
+  label: "agentcli CLI"
+  lean: "loop run|judge|autofix|doctor|review"
+  lab: "loop lab run|judge|autofix|compare|replay"
+}
+
+engine: {
+  label: "harnessloop Engine"
+  orchestrator: "RunLoop"
+  scenario: "Default Onboarding Scenario"
+  detector: "Findings Detector"
+  judge: "Score Judge (0..10)"
+  reporter: "Report Writer"
+  fixer: "Built-in Fix Catalog"
+  committee: {
+    label: "Committee (Lab)"
+    planner: "Planner Role"
+    fixer_role: "Fixer Role"
+    judger: "Independent Judger Role"
+  }
+}
+
+artifacts: {
+  label: ".docs/onboarding-loop"
+  summary: "latest-summary.json"
+  review: "review/latest.md"
+  runs: "runs/<run-id>/final-report.json"
+  iter: "runs/<run-id>/iter-XX/* (verbose lab only)"
+  compare: "compare/*.md"
+  benchmark: "benchmarks/latest.json"
+}
+
+quality_gates: {
+  label: "Quality Gates"
+  ci: "task ci"
+  doccheck: "docs:check"
+  benchmark_check: "loop:benchmark:check"
+}
+
+tools: {
+  label: "Support Tools"
+  roleagent: "internal/tools/roleagent"
+  loopbench: "internal/tools/loopbench"
+  loopclean: "internal/tools/loopclean"
+  doccheck_tool: "internal/tools/doccheck"
+}
+
+user -> cli
+
+cli.lean -> engine.orchestrator: "daily path"
+cli.lab -> engine.committee: "experimental path"
+cli.lab -> tools.roleagent: "external role cmds"
+
+engine.orchestrator -> engine.scenario
+engine.scenario -> engine.detector
+engine.detector -> engine.judge
+engine.judge -> engine.reporter
+engine.detector -> engine.fixer: "autofix only"
+
+engine.committee.planner -> engine.committee.fixer_role
+engine.committee.fixer_role -> engine.committee.judger
+engine.committee.judger -> engine.judge
+
+engine.reporter -> artifacts.summary
+engine.reporter -> artifacts.review
+engine.reporter -> artifacts.runs
+engine.committee -> artifacts.iter
+cli.lab -> artifacts.compare: "compare output"
+quality_gates.benchmark_check -> artifacts.benchmark
+
+quality_gates.ci -> quality_gates.doccheck
+quality_gates.ci -> quality_gates.benchmark_check
+
+tools.loopbench -> artifacts.benchmark
+tools.loopclean -> artifacts.compare
+tools.doccheck_tool -> cli: "CLI help signature parity"

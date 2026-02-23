@@ -32,3 +32,6 @@ flowchart TD
 - Commands under `agentcli loop lab ...`
 - Supports compare/replay/role experiments
 - Per-iteration artifacts are enabled with `--verbose-artifacts`
+
+
+D2 source: [docs/loop/architecture.d2](./architecture.d2)
