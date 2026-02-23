@@ -84,6 +84,32 @@ cd mycli
 task verify
 ```
 
+## Prompt Starter (AI Onboarding)
+
+Use this style to onboard with AI quickly, similar to `obra/superpowers`.
+
+Copy-paste this into your coding agent:
+
+```text
+You are helping me onboard to agentcli-go.
+Goal: create a deterministic Go CLI and keep it contract-compliant.
+
+Do these steps in order and show command output summaries:
+1) Check my environment and install agentcli if missing.
+2) Run: agentcli new --module example.com/mycli mycli
+3) Run: agentcli add command --dir ./mycli sync-data
+4) Run: agentcli doctor --dir ./mycli --json
+5) Run: cd mycli && task verify
+6) Explain any failures and fix them.
+
+Constraints:
+- Keep output deterministic.
+- Preserve schema/CI contracts.
+- Do not skip verification.
+```
+
+For reusable prompt files, see [`prompts/agentcli-onboarding.prompt.md`](./prompts/agentcli-onboarding.prompt.md).
+
 ## First 5 Minutes
 
 Copy-paste this end-to-end:
