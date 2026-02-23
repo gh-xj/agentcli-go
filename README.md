@@ -21,6 +21,18 @@ Framework modules for building Go CLI projects with an agent-first workflow.
 - Keep it deterministic with `task ci` and docs-aware checks.
 - Onboard another AI agent with one documented sequence.
 
+## 30-second demo
+
+```bash
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
+agentcli new --module github.com/me/my-tool my-tool
+cd my-tool
+agentcli doctor
+agentcli loop doctor --repo-root .            # optional verification trace
+```
+
+Expected result: a runnable scaffold (`main.go`, `cmd/`, `Taskfile.yml`, `test/`) plus a first quality check in less than 2 minutes.
+
 ## Why
 
 - Skip framework boilerplate for AI-assisted CLI creation.
