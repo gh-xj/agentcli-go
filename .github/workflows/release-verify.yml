@@ -1,0 +1,40 @@
+name: Release Verify
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  verify-release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+
+      - name: Install GitHub CLI
+        run: |
+          type -p curl >/dev/null || (sudo apt-get update && sudo apt-get install -y curl)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+            | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+            | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Build release artifacts
+        run: task release:build VERSION=${GITHUB_REF_NAME}
+
+      - name: Verify published release assets
+        run: task release:verify VERSION=${GITHUB_REF_NAME}

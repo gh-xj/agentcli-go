@@ -251,4 +251,5 @@ Optional maintainer steps:
 ```bash
 task release:verify VERSION=v0.2.2
 task release:tap VERSION=v0.2.2 TAP_PUSH=1
+task release:all VERSION=v0.2.2 TAP_PUSH=1
 ```

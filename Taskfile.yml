@@ -214,3 +214,16 @@ tasks:
       - task: release:verify
         vars:
           VERSION: "{{.VERSION}}"
+
+  release:all:
+    desc: End-to-end release plus Homebrew tap update (set TAP_PUSH=1 to push tap change)
+    requires:
+      vars: [VERSION]
+    cmds:
+      - task: release
+        vars:
+          VERSION: "{{.VERSION}}"
+      - task: release:tap
+        vars:
+          VERSION: "{{.VERSION}}"
+          TAP_PUSH: "{{.TAP_PUSH}}"
