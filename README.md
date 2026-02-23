@@ -191,6 +191,11 @@ For agent-specific onboarding and harness entrypoints, see [`agents.md`](./agent
 
 This repo is published as an agent skill at: https://clawhub.ai/gh-xj/agentcli-go
 
+## HN drafts
+
+- English: `docs/hn/2026-02-22-show-hn-agentcli-go.md`
+- 中文: `docs/hn/2026-02-23-show-hn-agentcli-go-zh.md`
+
 ---
 
 ## Quick Start: Agent-oriented CLI example
