@@ -4,10 +4,10 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/gh-xj/agentcli-go)](./go.mod)
 
 <p align="center">
-  <img src="./assets/logo/agentcli-go-logo.svg" alt="agentcli-go logo" width="760" />
+  <img src="./assets/logo/agentcli-go-logo.svg" alt="AgentCLI -GO logo" width="760" />
 </p>
 
-Build deterministic Go CLIs that humans and AI agents can both trust.
+Build deterministic Go CLIs for human + AI teams.
 
 `agentcli-go` helps you scaffold, verify, and evolve CLIs with explicit contracts.
 Ship faster with predictable automation, schema-backed checks, and repeatable project structure.
@@ -19,14 +19,14 @@ Ship faster with predictable automation, schema-backed checks, and repeatable pr
 
 ---
 
-# agentcli-go
+# AgentCLI -GO
 
-## Why agentcli-go
+## Why AgentCLI -GO
 
 - Build CLIs quickly with a deterministic scaffold
 - Enforce machine-readable contracts (`doctor --json`)
 - Catch regressions early with schema-backed CI gates
-- Keep AI-agent workflows predictable and auditable
+- Keep human + AI workflows predictable and auditable
 
 ## Why This Beats Script-Based Workflows
 
