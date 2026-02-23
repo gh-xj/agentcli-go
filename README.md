@@ -7,10 +7,10 @@
   <img src="./assets/logo/agentcli-go-logo.svg" alt="AgentCLI -GO logo" width="760" />
 </p>
 
-Build deterministic Go CLIs for human + AI teams.
+Harness engineering for Go CLIs: deterministic scaffolding, deterministic verification, deterministic evolution.
 
-`agentcli-go` helps you scaffold, verify, and evolve CLIs with explicit contracts.
-Ship faster with predictable automation, schema-backed checks, and repeatable project structure.
+`agentcli-go` is a CLI framework plus a verification harness system.
+It helps human + AI teams ship automation that stays contract-compliant over time.
 
 ---
 
@@ -18,10 +18,20 @@ Ship faster with predictable automation, schema-backed checks, and repeatable pr
 
 ## Why AgentCLI -GO
 
-- Build CLIs quickly with a deterministic scaffold
-- Enforce machine-readable contracts (`doctor --json`)
-- Catch regressions early with schema-backed CI gates
-- Keep human + AI workflows predictable and auditable
+- Build CLIs quickly with deterministic scaffold output
+- Standardize verification with machine-readable contracts (`doctor --json`)
+- Keep CI and local checks aligned with one harness contract (`task ci`)
+- Enable human review with low-cognitive artifacts (`loop doctor`, `loop review`)
+
+## Harness Engineering (Core Value)
+
+`agentcli-go` is not just code generation. Its core value is harness engineering:
+
+- deterministic scenario replay for onboarding and smoke validation
+- explicit score gates (`0..10`, threshold-based pass/fail)
+- role-based lab loops (planner/fixer/judger) when deep diagnosis is needed
+- reviewer-first outputs (`.docs/onboarding-loop/review/latest.md`, JSON for bots)
+- drift prevention: schema checks + docs/help consistency checks
 
 ## Why This Beats Script-Based Workflows
 
@@ -30,6 +40,7 @@ Compared with ad-hoc Bash/Python scripts, `agentcli-go` gives you:
 - compile-time safety instead of runtime surprises
 - stable command contracts instead of implicit behavior drift
 - deterministic verification (`task ci`, `task verify`) instead of best-effort checks
+- measurable quality loops (doctor/judge/review/benchmark) instead of ad-hoc fixes
 - a repeatable project shape that agents and humans can both maintain
 
 ## Installation
