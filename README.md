@@ -1,13 +1,33 @@
-# agentcli-go
-
 [![CI](https://github.com/gh-xj/agentcli-go/actions/workflows/ci.yml/badge.svg)](https://github.com/gh-xj/agentcli-go/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/gh-xj/agentcli-go)](https://github.com/gh-xj/agentcli-go/releases)
 [![License](https://img.shields.io/github/license/gh-xj/agentcli-go)](./LICENSE)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/gh-xj/agentcli-go)](./go.mod)
 
-Deterministic Go CLI framework for human + AI-agent teams.
+<p align="center">
+  <img src="./assets/logo/agentcli-go-logo.svg" alt="agentcli-go logo" width="760" />
+</p>
 
-`agentcli-go` helps you scaffold, verify, and evolve CLIs with explicit contracts so automation stays reliable as projects grow.
+Build deterministic Go CLIs that humans and AI agents can both trust.
+
+`agentcli-go` helps you scaffold, verify, and evolve CLIs with explicit contracts.
+Ship faster with predictable automation, schema-backed checks, and repeatable project structure.
+
+## Brand Assets
+
+- Horizontal logo: [`assets/logo/agentcli-go-logo.svg`](./assets/logo/agentcli-go-logo.svg)
+- Square mark: [`assets/logo/agentcli-go-mark.svg`](./assets/logo/agentcli-go-mark.svg)
+- Preferred usage: use the horizontal logo in docs/README headers and the square mark for icons, favicons, and social avatars.
+
+<p>
+  <img src="./assets/logo/agentcli-go-logo.svg" alt="agentcli-go horizontal logo" width="560" />
+</p>
+<p>
+  <img src="./assets/logo/agentcli-go-mark.svg" alt="agentcli-go square mark" width="120" />
+</p>
+
+---
+
+# agentcli-go
 
 ## Why agentcli-go
 
@@ -115,16 +135,6 @@ agentcli add command --dir ./demo --preset file-sync sync-data
 agentcli doctor --dir ./demo --json
 cd demo && task verify
 ```
-
-## Onboarding Benchmark
-
-Current internal partner onboarding baseline (`docs/partners/weekly-summary.md`):
-
-- median time to first scaffold success: 1 minute
-- median time to first `task verify` pass: 1 minute
-- median `doctor` iterations before green: 1
-
-If you are significantly above this baseline, treat it as onboarding friction and open an issue with your environment details.
 
 ## AI Prompt Starter
 

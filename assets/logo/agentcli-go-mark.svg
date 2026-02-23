@@ -1,0 +1,18 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="agentcli-go monogram mark">
+  <defs>
+    <linearGradient id="bg" x1="76" y1="64" x2="436" y2="448" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="goBlue" x1="126" y1="120" x2="376" y2="382" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5EDFFF"/>
+      <stop offset="1" stop-color="#00ADD8"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="48" y="48" width="416" height="416" rx="104" fill="url(#bg)"/>
+
+  <path d="M136 332L194 178C200 160 216 148 236 148H308C332 148 350 166 350 190V318" stroke="url(#goBlue)" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M232 258L276 286L232 314" stroke="#5EDFFF" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M294 314H338" stroke="#00ADD8" stroke-width="24" stroke-linecap="round"/>
+</svg>

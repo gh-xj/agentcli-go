@@ -1,0 +1,21 @@
+<svg width="1200" height="300" viewBox="0 0 1200 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="agentcli-go logo">
+  <defs>
+    <linearGradient id="logoBg" x1="24" y1="24" x2="276" y2="276" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="logoGoBlue" x1="84" y1="80" x2="218" y2="222" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5EDFFF"/>
+      <stop offset="1" stop-color="#00ADD8"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="24" y="24" width="252" height="252" rx="64" fill="url(#logoBg)"/>
+  <path d="M90 198L124 106C128 94 137 86 148 86H191C205 86 216 97 216 111V190" stroke="url(#logoGoBlue)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M142 154L166 170L142 186" stroke="#5EDFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M177 186H202" stroke="#00ADD8" stroke-width="12" stroke-linecap="round"/>
+
+  <text x="324" y="148" font-family="SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace" font-size="92" font-weight="700" fill="#0F172A">agentcli</text>
+  <text x="853" y="148" font-family="SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace" font-size="92" font-weight="700" fill="#00ADD8">-go</text>
+  <text x="326" y="206" font-family="SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace" font-size="34" fill="#334155">Deterministic CLI contracts for human + AI-agent teams</text>
+</svg>
