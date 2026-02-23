@@ -32,6 +32,34 @@ This file is the quick entrypoint for coding agents working in this repository.
   - `agentcli --version`
   - `agentcli --help`
 
+## Copy-paste onboarding script (mandatory for agents)
+
+Use this in first contact when onboarding to this repo:
+
+```text
+I am onboarding to use this repository as an agent skill.
+
+1) Read in this order:
+   - CLAUDE.md
+   - docs/documentation-conventions.md
+   - agents.md
+   - skills/agentcli-go/SKILL.md
+   - skills/verification-loop/SKILL.md
+2) Validate installation:
+   - which agentcli
+   - agentcli --version
+   - agentcli --help
+3) Run baseline checks:
+   - task ci
+   - task verify
+4) For harness decisions:
+   - do not run unsupported command forms (for example: `agentcli loop all`)
+5) Document changes with routing:
+   - user-facing -> README.md
+   - agent workflow -> agents.md / related skill docs
+   - durable agent memory -> CLAUDE.md
+```
+
 ## Harness Outputs
 
 - Loop artifacts are under `.docs/onboarding-loop/`.

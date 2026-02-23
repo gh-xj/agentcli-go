@@ -77,28 +77,11 @@ Lower agent cognitive load + safer iteration
 
 ## Copy-paste onboarding prompt (for agents)
 
-Use this as your first message when using `agentcli-go` as a skill:
+Use this short pointer at session start:
 
 ```text
 I am onboarding to use this repository as an agent skill.
-Read in this order:
-1) CLAUDE.md
-2) docs/documentation-conventions.md
-3) agents.md
-4) skills/agentcli-go/SKILL.md
-5) skills/verification-loop/SKILL.md (if I will run harness loops)
-Use existing install/verification commands from the docs; then run:
-- which agentcli
-- agentcli --version
-- agentcli --help
-- task ci (as the canonical quality gate)
-Do not apply unsupported commands (for example, avoid `agentcli loop all`).
-When documenting any change, route docs correctly:
-- user-facing -> README.md
-- agent-only -> agents.md / related skill docs
-- durable agent memory -> CLAUDE.md
-- skill command changes -> skills/*/SKILL.md
-Before finishing, produce a short session recap with: what I changed, why, and any risks.
+Please follow the sequence in agents.md, including canonical onboarding commands, doc-routing rules, and memory/update actions.
 ```
 
 ## Quick adoption path (5 minutes)
