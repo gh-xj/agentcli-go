@@ -1,6 +1,7 @@
 package harnessloop
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -37,6 +38,27 @@ func LoopDoctor(repoRoot string) DoctorReport {
 		Suggestions:      suggestions,
 		ReviewPath:       reviewPath,
 	}
+}
+
+func RenderDoctorMarkdown(r DoctorReport) string {
+	var b strings.Builder
+	b.WriteString("# Loop Doctor\n\n")
+	b.WriteString(fmt.Sprintf("- Lean ready: `%v`\n", r.LeanReady))
+	b.WriteString(fmt.Sprintf("- Lab features ready: `%v`\n", r.LabFeaturesReady))
+	b.WriteString(fmt.Sprintf("- Review path: `%s`\n", r.ReviewPath))
+	b.WriteString("\n## Findings\n\n")
+	if len(r.Findings) == 0 {
+		b.WriteString("- none\n")
+	} else {
+		for _, f := range r.Findings {
+			b.WriteString(fmt.Sprintf("- [%s] %s (%s)\n", f.Code, f.Message, f.Source))
+		}
+	}
+	b.WriteString("\n## Suggestions\n\n")
+	for _, s := range r.Suggestions {
+		b.WriteString(fmt.Sprintf("- %s\n", s))
+	}
+	return b.String()
 }
 
 func hasAnyIterArtifacts(repoRoot string) bool {

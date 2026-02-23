@@ -211,6 +211,7 @@ Examples index: [`examples/README.md`](./examples/README.md)
 Simple docs entry points:
 
 - https://gh-xj.github.io/agentcli-go/
+- [`skills/verification-loop/SKILL.md`](./skills/verification-loop/SKILL.md)
 - [`docs/loop/quickstart.md`](./docs/loop/quickstart.md)
 - [`docs/site/index.md`](./docs/site/index.md)
 - [`docs/site/getting-started.md`](./docs/site/getting-started.md)

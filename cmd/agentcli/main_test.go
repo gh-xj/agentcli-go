@@ -158,11 +158,12 @@ func TestParseLoopFlags(t *testing.T) {
 		"--max-iterations", "2",
 		"--branch", "autofix/test",
 		"--api", "http://127.0.0.1:7878",
+		"--md",
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if opts.RepoRoot != "." || opts.Threshold != 8.5 || opts.MaxIterations != 2 || opts.Branch != "autofix/test" || opts.APIURL != "http://127.0.0.1:7878" {
+	if opts.RepoRoot != "." || opts.Threshold != 8.5 || opts.MaxIterations != 2 || opts.Branch != "autofix/test" || opts.APIURL != "http://127.0.0.1:7878" || !opts.Markdown {
 		t.Fatalf("unexpected parse values: %+v", opts)
 	}
 }

@@ -44,3 +44,10 @@ A reusable multi-agent verification/autofix loop that works across repositories 
 - Role commands (planner/fixer/judger) with deterministic context contract
 - Independent judger default (no planner/fixer reasoning context)
 - Benchmark floor checks (`task loop:benchmark` + `task loop:benchmark:check`)
+
+## Resources
+
+- `skills/verification-loop/examples/lean.md`
+- `skills/verification-loop/examples/lab.md`
+- `skills/verification-loop/examples/ci.md`
+- `skills/verification-loop/CHECKLIST.md`

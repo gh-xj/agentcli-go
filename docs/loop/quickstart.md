@@ -41,3 +41,7 @@ Use advanced workflows only when needed:
 - `agentcli loop lab compare ...`
 - `agentcli loop lab replay ...`
 - `agentcli loop lab run --verbose-artifacts ...`
+
+Reviewer checklist:
+
+- `skills/verification-loop/CHECKLIST.md`

@@ -254,6 +254,11 @@ tasks:
     cmds:
       - go run ./cmd/agentcli loop doctor --repo-root .
 
+  loop:doctor:md:
+    desc: Render doctor report in markdown
+    cmds:
+      - go run ./cmd/agentcli loop doctor --repo-root . --md
+
   loop:judge:api:
     desc: Run onboarding judge via local loop API
     cmds:

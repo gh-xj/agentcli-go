@@ -28,8 +28,12 @@ func runLoop(args []string) int {
 			return agentcli.ExitUsage
 		}
 		report := harnessloop.LoopDoctor(opts.RepoRoot)
-		out, _ := json.MarshalIndent(report, "", "  ")
-		fmt.Fprintln(os.Stdout, string(out))
+		if opts.Markdown {
+			fmt.Fprintln(os.Stdout, harnessloop.RenderDoctorMarkdown(report))
+		} else {
+			out, _ := json.MarshalIndent(report, "", "  ")
+			fmt.Fprintln(os.Stdout, string(out))
+		}
 		if report.LeanReady {
 			return agentcli.ExitSuccess
 		}
@@ -189,6 +193,7 @@ type loopFlags struct {
 	MaxIterations int
 	Branch        string
 	APIURL        string
+	Markdown      bool
 }
 
 func parseLoopFlags(args []string) (loopFlags, error) {
@@ -234,6 +239,8 @@ func parseLoopFlags(args []string) (loopFlags, error) {
 			}
 			opts.APIURL = args[i+1]
 			i++
+		case "--md":
+			opts.Markdown = true
 		default:
 			return loopFlags{}, fmt.Errorf("unexpected argument: %s", args[i])
 		}
