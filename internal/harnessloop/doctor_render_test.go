@@ -13,7 +13,7 @@ func TestRenderDoctorMarkdownGolden(t *testing.T) {
 		LabFeaturesReady: false,
 		Findings:         nil,
 		Suggestions:      []string{"Lean path ready. Use 'agentcli loop judge' for daily checks."},
-		ReviewPath:       ".docs/onboarding-loop/review/latest.md",
+		ReviewPath:       ".docs/onboarding-loop/maintainer/latest-review.md",
 	}
 	got := RenderDoctorMarkdown(r)
 	goldenPath := filepath.Join("testdata", "doctor.md.golden")

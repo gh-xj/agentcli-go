@@ -63,7 +63,7 @@ This makes A/B experiments reproducible and auditable.
 
 Reviewer summary:
 
-- `.docs/onboarding-loop/review/latest.md`
+- `.docs/onboarding-loop/maintainer/latest-review.md`
 
 ## Benchmark Floor
 

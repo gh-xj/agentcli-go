@@ -20,23 +20,11 @@ agentcli loop judge --repo-root . --threshold 9.0 --max-iterations 1
 agentcli loop autofix --repo-root . --threshold 9.0 --max-iterations 3
 ```
 
-## Review Output
+## Maintainer Output
 
-Primary reviewer file:
+Maintainer review file:
 
-- `.docs/onboarding-loop/review/latest.md`
-
-Or print it directly:
-
-```bash
-agentcli loop review --repo-root .
-```
-
-JSON output for automation:
-
-```bash
-agentcli loop review --repo-root . --json
-```
+- `.docs/onboarding-loop/maintainer/latest-review.md`
 
 Primary machine-readable summary:
 
@@ -63,7 +51,7 @@ Reviewer checklist:
 1. `loop doctor` fails lean-ready:
    - run `agentcli loop doctor --repo-root . --md`
    - fix onboarding install prompt issues reported in findings.
-2. `loop review` says file missing:
-   - run `agentcli loop judge --repo-root . --max-iterations 1` once to generate review output.
+2. maintainer review file missing:
+   - run `agentcli loop judge --repo-root . --max-iterations 1` once to generate fresh maintainer output.
 3. replay/compare needs more artifacts:
    - run `agentcli loop lab run --repo-root . --max-iterations 1 --verbose-artifacts`.

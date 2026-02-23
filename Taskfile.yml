@@ -265,11 +265,6 @@ tasks:
     cmds:
       - go run ./cmd/agentcli loop doctor --repo-root . --md
 
-  loop:review:
-    desc: Print latest reviewer dashboard
-    cmds:
-      - go run ./cmd/agentcli loop review --repo-root .
-
   loop:clean:
     desc: Clean stale loop compare artifacts (keeps latest 20)
     cmds:

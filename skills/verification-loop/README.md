@@ -8,12 +8,8 @@ Front page for the local verification-loop skill package.
 
 ## Command reference (must match CLI help)
 
-- `agentcli loop [run|judge|autofix|doctor|review]`
+- `agentcli loop [run|judge|autofix|doctor]`
 - `agentcli loop lab [compare|replay|run|judge|autofix]`
-
-Review JSON for bots:
-
-- `agentcli loop review --repo-root . --json`
 
 ## Resources
 

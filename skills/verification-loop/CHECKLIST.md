@@ -1,6 +1,6 @@
 # Reviewer Checklist
 
-1. Open `.docs/onboarding-loop/review/latest.md` and confirm `Pass: true` with score >= threshold.
+1. Open `.docs/onboarding-loop/maintainer/latest-review.md` and confirm `Pass: true` with score >= threshold.
 2. Confirm findings section is `none` or accepted with explicit follow-up.
 3. If loop was lab-mode, verify role scores (planner/fixer/judger) are not degraded.
 4. For regressions, run `agentcli loop judge --repo-root . --max-iterations 1` before merge.

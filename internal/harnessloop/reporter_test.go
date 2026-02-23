@@ -26,7 +26,7 @@ func TestWriteReportsCleansOldRunsAndWritesReview(t *testing.T) {
 	if len(entries) > 20 {
 		t.Fatalf("expected at most 20 run dirs, got %d", len(entries))
 	}
-	if _, err := os.Stat(filepath.Join(repo, ".docs", "onboarding-loop", "review", "latest.md")); err != nil {
+	if _, err := os.Stat(filepath.Join(repo, ".docs", "onboarding-loop", "maintainer", "latest-review.md")); err != nil {
 		t.Fatalf("missing review latest: %v", err)
 	}
 }

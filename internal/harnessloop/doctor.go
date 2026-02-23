@@ -18,7 +18,7 @@ type DoctorReport struct {
 
 func LoopDoctor(repoRoot string) DoctorReport {
 	findings := CheckOnboardingInstallReadiness(repoRoot)
-	reviewPath := filepath.Join(repoRoot, ".docs", "onboarding-loop", "review", "latest.md")
+	reviewPath := filepath.Join(repoRoot, ".docs", "onboarding-loop", "maintainer", "latest-review.md")
 	labReady := hasAnyIterArtifacts(repoRoot)
 	suggestions := []string{}
 	if len(findings) > 0 {

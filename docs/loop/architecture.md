@@ -7,7 +7,7 @@ flowchart TD
   C --> D[Detect Findings]
   D --> E[Judge]
   E --> F[Write latest-summary.json]
-  F --> G[Write review/latest.md]
+  F --> G[Write maintainer/latest-review.md]
 
   H[agentcli loop lab ...] --> I[Committee Engine]
   I --> J[planner role]
@@ -24,8 +24,8 @@ flowchart TD
 
 ## Lean Path
 
-- Commands: `run`, `judge`, `autofix`, `doctor`, `review`
-- Output focus: `.docs/onboarding-loop/latest-summary.json` and `.docs/onboarding-loop/review/latest.md`
+- Commands: `run`, `judge`, `autofix`, `doctor`
+- Output focus: `.docs/onboarding-loop/latest-summary.json` and `.docs/onboarding-loop/maintainer/latest-review.md`
 
 ## Lab Path
 

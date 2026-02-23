@@ -33,7 +33,7 @@ func WriteReports(repoRoot string, result RunResult) error {
 }
 
 func writeReviewLatest(repoRoot string, result RunResult) error {
-	reviewDir := filepath.Join(repoRoot, ".docs", "onboarding-loop", "review")
+	reviewDir := filepath.Join(repoRoot, ".docs", "onboarding-loop", "maintainer")
 	if err := os.MkdirAll(reviewDir, 0755); err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func writeReviewLatest(repoRoot string, result RunResult) error {
 		b.WriteString(fmt.Sprintf("- Fixer score: `%.2f`\n", result.Judge.FixerScore))
 		b.WriteString(fmt.Sprintf("- Judger score: `%.2f`\n", result.Judge.JudgerScore))
 	}
-	return os.WriteFile(filepath.Join(reviewDir, "latest.md"), []byte(b.String()), 0644)
+	return os.WriteFile(filepath.Join(reviewDir, "latest-review.md"), []byte(b.String()), 0644)
 }
 
 func cleanupRunArtifacts(repoRoot string, keep int) error {
