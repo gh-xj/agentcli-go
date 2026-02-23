@@ -1,41 +1,42 @@
-# Contributing
+# Contributing to agentcli-go
 
-Thanks for contributing to `agentcli-go`.
+Thanks for improving agentcli-go.
 
-## Development Workflow
+## Repository setup
 
-1. Fork and create a feature branch.
-2. Make focused, deterministic changes.
-3. Run local verification:
+- Install Go (matching your environment’s `go.mod` requirement).
+- Install the CLI helper if you need scaffold flows:
 
 ```bash
-task ci
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
 ```
 
-4. Open a PR with:
-- problem statement
-- approach summary
-- verification evidence
+## Core checks
 
-## Contribution Rules
+Before opening a PR, run at least:
 
-- Preserve deterministic scaffold/runtime behavior.
-- If output contracts change, update:
-  - `schemas/*.schema.json`
-  - `testdata/contracts/*.ok.json`
-  - `testdata/contracts/*.bad-*.json` when relevant
-- Prefer small, reviewable PRs.
+```bash
+go test ./...
+go test ./... -run TestNonExistent  # optional smoke pass pattern for quick local use
+agentcli loop doctor --repo-root .
+```
 
-## Commit Style
+## PR expectations
 
-Use concise conventional prefixes where practical:
-- `feat:`
-- `fix:`
-- `docs:`
-- `test:`
-- `build:`
-- `refactor:`
+- Keep API additions small and generic.
+- Prefer deterministic behavior and explicit error paths.
+- Update docs where behavior changes:
+  - `README.md` for public API/use-case changes
+  - `agents.md` for agent workflow updates
+  - `CLAUDE.md` for durable repo-level rules
+  - `docs/documentation-conventions.md` for routing exceptions
+- Add/adjust tests for behavior changes.
+- If you touch skill commands, update `skills/*/SKILL.md` and keep examples aligned.
 
-## Questions
+## Feedback
 
-Open a GitHub issue for design questions before large changes.
+When reporting issues, include:
+- What command was run
+- Input parameters
+- Expected vs actual output
+- Reproducible steps

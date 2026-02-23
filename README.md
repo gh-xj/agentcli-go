@@ -30,6 +30,13 @@ Shared Go helpers and framework modules for building personal CLI scripts and to
 - Standardized lifecycle/error semantics so teams can onboard agents and scripts faster with fewer “first-run” surprises.
 - A practical base for scalable agent/tooling workflows, while keeping the runtime surface small and reviewable.
 
+## Who should use agentcli-go
+
+- You build Go CLI tools and want one reusable helper library instead of rewriting boilerplate.
+- You ship internal tooling and want deterministic templates, predictable outputs, and CI-friendly checks.
+- You rely on AI agents and want fewer run/retry loops from inconsistent setup.
+- You value small, reviewable runtime APIs over large generator-heavy frameworks.
+
 ## How this project fits
 
 `agentcli-go` is the **foundation layer** for CLI scripts in this repo:
@@ -58,6 +65,41 @@ Generated project (task/verify, schemas, docs:check, loop/quality)
            ▼
 Lower agent cognitive load + safer iteration
 ```
+
+## Quick adoption path (5 minutes)
+
+1. Install the CLI:
+
+```bash
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
+```
+
+2. Generate a standard project:
+
+```bash
+agentcli new --module github.com/me/my-tool my-tool
+cd my-tool
+```
+
+3. Run the first health checks:
+
+```bash
+go test ./...
+agentcli doctor
+```
+
+4. Add a command and verify quickly:
+
+```bash
+agentcli add command --name sync --preset file-sync
+go run . --help
+```
+
+If this works, your team gets a scaffolded CLI with harness-friendly structure without manual setup.
+
+## Contributing
+
+- Contributions are welcome. See `CONTRIBUTING.md` for review expectations, local checks, and PR workflow.
 
 ## Installation
 
