@@ -245,3 +245,10 @@ Requirements:
 
 - `docs/releases/v0.2.2.md` exists
 - GitHub CLI (`gh`) authenticated for `gh-xj/agentcli-go`
+
+Optional maintainer steps:
+
+```bash
+task release:verify VERSION=v0.2.2
+task release:tap VERSION=v0.2.2 TAP_PUSH=1
+```

@@ -1,5 +1,11 @@
 version: "3"
 
+vars:
+  RELEASE_REPO: gh-xj/agentcli-go
+  TAP_REPO: gh-xj/homebrew-tap
+  TAP_BRANCH: main
+  TAP_PUSH: "0"
+
 tasks:
   fmt:
     desc: Format Go files
@@ -120,12 +126,78 @@ tasks:
         dist/{{.VERSION}}/agentcli_{{.VERSION}}_linux_amd64.tar.gz
         dist/{{.VERSION}}/agentcli_{{.VERSION}}_linux_arm64.tar.gz
         dist/{{.VERSION}}/checksums.txt
-        --repo gh-xj/agentcli-go
+        --repo {{.RELEASE_REPO}}
         --title "agentcli-go {{.VERSION}}"
         --notes-file docs/releases/{{.VERSION}}.md
 
+  release:verify:
+    desc: Verify published release assets and digests match uploaded checksums.txt
+    requires:
+      vars: [VERSION]
+    cmds:
+      - test -n "{{.VERSION}}"
+      - >
+        gh release view {{.VERSION}}
+        --repo {{.RELEASE_REPO}}
+        --json isDraft,isPrerelease
+        --jq '.isDraft == false and .isPrerelease == false' | grep -q true
+      - |
+        set -euo pipefail
+        tmp="$(mktemp -d)"
+        gh release download {{.VERSION}} --repo {{.RELEASE_REPO}} --pattern checksums.txt --dir "$tmp"
+        checksums_file="$tmp/checksums.txt"
+        test -f "$checksums_file"
+        while read -r checksum name; do
+          digest=$(gh release view {{.VERSION}} --repo {{.RELEASE_REPO}} --json assets --jq ".assets[] | select(.name==\"${name}\") | .digest")
+          test -n "$digest"
+          test "$digest" = "sha256:${checksum}"
+        done < "$checksums_file"
+        checksums_digest=$(gh release view {{.VERSION}} --repo {{.RELEASE_REPO}} --json assets --jq '.assets[] | select(.name=="checksums.txt") | .digest')
+        test -n "$checksums_digest"
+      - echo "release verify passed for {{.VERSION}}"
+
+  release:tap:
+    desc: Update homebrew tap formula for VERSION (set TAP_PUSH=1 to commit and push)
+    requires:
+      vars: [VERSION]
+    cmds:
+      - test -n "{{.VERSION}}"
+      - |
+        sh -c 'case "{{.VERSION}}" in
+          v*) ;;
+          *) echo "VERSION must start with v (example v0.2.2)" >&2; exit 1 ;;
+        esac'
+      - |
+        set -euo pipefail
+        tmp="$(mktemp -d)"
+        git clone "https://github.com/{{.TAP_REPO}}.git" "$tmp/homebrew-tap" >/dev/null
+        formula="$tmp/homebrew-tap/Formula/agentcli.rb"
+        sha=$(curl -L -s "https://github.com/gh-xj/agentcli-go/archive/refs/tags/{{.VERSION}}.tar.gz" | shasum -a 256 | awk '{print $1}')
+        awk -v v="{{.VERSION}}" -v s="$sha" '
+          /^  url "/ { print "  url \"https://github.com/gh-xj/agentcli-go/archive/refs/tags/" v ".tar.gz\""; next }
+          /^  sha256 "/ { print "  sha256 \"" s "\""; next }
+          { print }
+        ' "$formula" > "$formula.tmp"
+        mv "$formula.tmp" "$formula"
+        cd "$tmp/homebrew-tap"
+        if git diff --quiet -- Formula/agentcli.rb; then
+          echo "tap formula already up to date for {{.VERSION}}"
+          exit 0
+        fi
+        if [ "{{.TAP_PUSH}}" = "1" ]; then
+          version_no_v="{{.VERSION}}"
+          version_no_v="${version_no_v#v}"
+          git add Formula/agentcli.rb
+          git commit -m "agentcli ${version_no_v}"
+          git push origin "{{.TAP_BRANCH}}"
+          echo "tap updated and pushed"
+        else
+          echo "tap update preview (set TAP_PUSH=1 to push):"
+          git --no-pager diff -- Formula/agentcli.rb
+        fi
+
   release:
-    desc: End-to-end release flow (prep + build + tag + publish)
+    desc: End-to-end release flow (prep + build + tag + publish + verify)
     requires:
       vars: [VERSION]
     cmds:
@@ -137,5 +209,8 @@ tasks:
         vars:
           VERSION: "{{.VERSION}}"
       - task: release:publish
+        vars:
+          VERSION: "{{.VERSION}}"
+      - task: release:verify
         vars:
           VERSION: "{{.VERSION}}"
