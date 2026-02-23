@@ -7,9 +7,9 @@
   <img src="./assets/logo/agentcli-go-logo.svg" alt="AgentCLI - GO logo" width="760" />
 </p>
 
-Shared Go helpers and framework modules for building personal CLI scripts and tools.
+Framework modules for building Go CLI projects with an agent-first workflow.
 
-`agentcli-go` is a **library** you import into your Go CLI projects. It provides logging, argument parsing, command execution, and filesystem helpers so you skip boilerplate and focus on your script's logic.
+`agentcli-go` is an **agent-first CLI scaffold and runtime framework**: it provides logging, argument parsing, command execution, filesystem helpers, lifecycle flow, and verification primitives so AI agents can build reliable CLI tools consistently.
 
 ---
 
@@ -17,10 +17,10 @@ Shared Go helpers and framework modules for building personal CLI scripts and to
 
 ## Why
 
-- Skip boilerplate: logging, arg parsing, exec, fs helpers ready to import
-- Consistent patterns across all your Go CLI scripts
-- Scaffold a compliant project in under a minute
-- Machine-readable output (`--json`) built into the scaffold from day one
+- Skip framework boilerplate for AI-assisted CLI creation.
+- Standardized CLI patterns across generated agents/tools.
+- Scaffold a compliant project in under a minute.
+- Machine-readable output (`--json`) built into the scaffold from day one.
 
 ### Harness Engineering value proposition
 
@@ -32,10 +32,12 @@ Shared Go helpers and framework modules for building personal CLI scripts and to
 
 ## Who should use agentcli-go
 
-- You build Go CLI tools and want one reusable helper library instead of rewriting boilerplate.
+- You want AI agents to generate, evolve, and maintain Go CLIs with predictable behavior.
 - You ship internal tooling and want deterministic templates, predictable outputs, and CI-friendly checks.
-- You rely on AI agents and want fewer run/retry loops from inconsistent setup.
-- You value small, reviewable runtime APIs over large generator-heavy frameworks.
+- You want fewer run/retry loops from inconsistent setup and missing onboarding context.
+- You value a small, reviewable runtime API over large generator-heavy ecosystems.
+
+This project is primarily a **foundation for agent-built CLIs**, and also useful for human users who want that same rigor and consistency.
 
 ## Common use cases
 
@@ -71,6 +73,32 @@ Generated project (task/verify, schemas, docs:check, loop/quality)
            │
            ▼
 Lower agent cognitive load + safer iteration
+```
+
+## Copy-paste onboarding prompt (for agents)
+
+Use this as your first message when using `agentcli-go` as a skill:
+
+```text
+I am onboarding to use this repository as an agent skill.
+Read in this order:
+1) CLAUDE.md
+2) docs/documentation-conventions.md
+3) agents.md
+4) skills/agentcli-go/SKILL.md
+5) skills/verification-loop/SKILL.md (if I will run harness loops)
+Use existing install/verification commands from the docs; then run:
+- which agentcli
+- agentcli --version
+- agentcli --help
+- task ci (as the canonical quality gate)
+Do not apply unsupported commands (for example, avoid `agentcli loop all`).
+When documenting any change, route docs correctly:
+- user-facing -> README.md
+- agent-only -> agents.md / related skill docs
+- durable agent memory -> CLAUDE.md
+- skill command changes -> skills/*/SKILL.md
+Before finishing, produce a short session recap with: what I changed, why, and any risks.
 ```
 
 ## Quick adoption path (5 minutes)
@@ -153,7 +181,7 @@ This repo is published as an agent skill at: https://clawhub.ai/gh-xj/agentcli-g
 
 ---
 
-## Quick Start: Write a Script
+## Quick Start: Agent-oriented CLI example
 
 ```go
 package main
@@ -186,6 +214,8 @@ func main() {
 ```
 
 Run with: `go run . --src ./data --dst /backup`
+
+This style of usage is intentionally minimal so agents can reuse it as a baseline and keep project rules consistent.
 
 ---
 
