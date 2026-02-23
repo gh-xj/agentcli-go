@@ -5,7 +5,8 @@ repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
 if command -v task >/dev/null 2>&1; then
-  task hygiene
+  task preflight
+  task lint:golangci
 else
   ./scripts/hygiene.sh
 fi

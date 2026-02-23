@@ -5,6 +5,7 @@ vars:
   TAP_REPO: gh-xj/homebrew-tap
   TAP_BRANCH: main
   TAP_PUSH: "0"
+  GOLANGCI_LINT_VERSION: v2.4.0
   LOOP_REPO_ROOT: .
   LOOP_THRESHOLD: "9.0"
   LOOP_MAX_ITERATIONS: "3"
@@ -34,10 +35,21 @@ tasks:
     cmds:
       - echo "preflight checks passed"
 
-  lint:
-    desc: Run static checks
+  lint:vet:
+    desc: Run go vet
     cmds:
       - go vet ./...
+
+  lint:golangci:
+    desc: Run golangci-lint with repository config
+    cmds:
+      - go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@{{.GOLANGCI_LINT_VERSION}} run --config .golangci.yaml
+
+  lint:
+    desc: Run static checks
+    deps: [lint:vet, lint:golangci]
+    cmds:
+      - echo "lint checks passed"
 
   test:
     desc: Run unit tests
