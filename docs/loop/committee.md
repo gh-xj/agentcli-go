@@ -18,6 +18,12 @@ agentcli loop all \
   --max-iterations 3
 ```
 
+Compare two runs:
+
+```bash
+agentcli loop compare --repo-root . --run-a 20260223-021749 --run-b 20260223-023012
+```
+
 ## External role contract
 
 Each role may provide a command in role config. Runtime injects:
@@ -28,6 +34,8 @@ Each role may provide a command in role config. Runtime injects:
 - `HARNESS_REPO_ROOT`
 
 Role command should emit JSON to stdout or to `HARNESS_OUTPUT_FILE`.
+
+Judger role is independent by default: it receives only post-fix scenario + findings context, not planner/fixer reasoning.
 
 ## Artifacts
 

@@ -12,11 +12,6 @@ Build deterministic Go CLIs for human + AI teams.
 `agentcli-go` helps you scaffold, verify, and evolve CLIs with explicit contracts.
 Ship faster with predictable automation, schema-backed checks, and repeatable project structure.
 
-## Brand Assets
-
-- Horizontal logo: [`assets/logo/agentcli-go-logo.svg`](./assets/logo/agentcli-go-logo.svg)
-- Preferred usage: use the horizontal logo in docs/README headers.
-
 ---
 
 # AgentCLI -GO
@@ -182,6 +177,12 @@ task loop:committee
 ```
 
 Artifacts are stored at `.docs/onboarding-loop/runs/<run-id>/`.
+
+Compare two experiment runs:
+
+```bash
+agentcli loop compare --repo-root . --run-a <run-id-a> --run-b <run-id-b>
+```
 
 ## Examples
 

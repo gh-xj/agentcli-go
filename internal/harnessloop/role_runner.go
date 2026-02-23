@@ -12,9 +12,12 @@ import (
 
 func runPlannerRole(repoRoot, artifactDir string, spec RoleSpec, ctx roleContext) (plannerOutput, RoleExecution, error) {
 	execMeta := RoleExecution{Strategy: strategyOrBuiltin(spec), Command: spec.Command, Artifacts: artifactDir}
-	out := plannerOutput{Summary: "builtin planner", FixTargets: findingCodes(ctx.Findings)}
+	out := plannerOutput{SchemaVersion: "v1", Summary: "builtin planner", FixTargets: findingCodes(ctx.Findings)}
 
 	if strings.TrimSpace(spec.Command) == "" {
+		if err := validatePlannerOutput(out); err != nil {
+			return out, execMeta, err
+		}
 		_ = writeJSON(filepath.Join(artifactDir, "planner-output.json"), out)
 		return out, execMeta, nil
 	}
@@ -26,6 +29,13 @@ func runPlannerRole(repoRoot, artifactDir string, spec RoleSpec, ctx roleContext
 	if err != nil {
 		return out, execMeta, err
 	}
+	if external.SchemaVersion == "" {
+		external.SchemaVersion = "v1"
+	}
+	if err := validatePlannerOutput(external); err != nil {
+		return out, execMeta, err
+	}
+	_ = writeJSON(filepath.Join(artifactDir, "planner-output.json"), external)
 	return external, execMeta, nil
 }
 
@@ -35,9 +45,12 @@ func runFixerRole(repoRoot, artifactDir string, spec RoleSpec, ctx roleContext, 
 	if err != nil {
 		return nil, execMeta, err
 	}
-	fallback := fixerOutput{Applied: applied, Notes: "builtin fixer"}
+	fallback := fixerOutput{SchemaVersion: "v1", Applied: applied, Notes: "builtin fixer"}
 
 	if strings.TrimSpace(spec.Command) == "" {
+		if err := validateFixerOutput(fallback); err != nil {
+			return nil, execMeta, err
+		}
 		execMeta.Applied = fallback.Applied
 		execMeta.Notes = fallback.Notes
 		_ = writeJSON(filepath.Join(artifactDir, "fixer-output.json"), fallback)
@@ -58,15 +71,25 @@ func runFixerRole(repoRoot, artifactDir string, spec RoleSpec, ctx roleContext, 
 	if err != nil {
 		return fallback.Applied, execMeta, err
 	}
+	if external.SchemaVersion == "" {
+		external.SchemaVersion = "v1"
+	}
+	if err := validateFixerOutput(external); err != nil {
+		return fallback.Applied, execMeta, err
+	}
 	execMeta.Applied = external.Applied
 	execMeta.Notes = external.Notes
+	_ = writeJSON(filepath.Join(artifactDir, "fixer-output.json"), external)
 	return append(fallback.Applied, external.Applied...), execMeta, nil
 }
 
 func runJudgerRole(repoRoot, artifactDir string, spec RoleSpec, ctx roleContext) (judgerOutput, RoleExecution, error) {
-	execMeta := RoleExecution{Strategy: strategyOrBuiltin(spec), Command: spec.Command, Artifacts: artifactDir}
-	fallback := judgerOutput{ExtraFindings: nil, Notes: "builtin judger"}
+	execMeta := RoleExecution{Strategy: strategyOrBuiltin(spec), Command: spec.Command, Artifacts: artifactDir, Independent: true}
+	fallback := judgerOutput{SchemaVersion: "v1", ExtraFindings: nil, Notes: "builtin judger"}
 	if strings.TrimSpace(spec.Command) == "" {
+		if err := validateJudgerOutput(fallback); err != nil {
+			return fallback, execMeta, err
+		}
 		execMeta.Notes = fallback.Notes
 		_ = writeJSON(filepath.Join(artifactDir, "judger-output.json"), fallback)
 		return fallback, execMeta, nil
@@ -79,7 +102,14 @@ func runJudgerRole(repoRoot, artifactDir string, spec RoleSpec, ctx roleContext)
 	if err != nil {
 		return fallback, execMeta, err
 	}
+	if external.SchemaVersion == "" {
+		external.SchemaVersion = "v1"
+	}
+	if err := validateJudgerOutput(external); err != nil {
+		return fallback, execMeta, err
+	}
 	execMeta.Notes = external.Notes
+	_ = writeJSON(filepath.Join(artifactDir, "judger-output.json"), external)
 	return external, execMeta, nil
 }
 
@@ -144,4 +174,34 @@ func tail(s string, n int) string {
 		return s
 	}
 	return s[len(s)-n:]
+}
+
+func validatePlannerOutput(out plannerOutput) error {
+	if out.SchemaVersion != "v1" {
+		return fmt.Errorf("invalid planner schema_version: %q", out.SchemaVersion)
+	}
+	if strings.TrimSpace(out.Summary) == "" {
+		return fmt.Errorf("planner summary is required")
+	}
+	return nil
+}
+
+func validateFixerOutput(out fixerOutput) error {
+	if out.SchemaVersion != "v1" {
+		return fmt.Errorf("invalid fixer schema_version: %q", out.SchemaVersion)
+	}
+	if strings.TrimSpace(out.Notes) == "" {
+		return fmt.Errorf("fixer notes are required")
+	}
+	return nil
+}
+
+func validateJudgerOutput(out judgerOutput) error {
+	if out.SchemaVersion != "v1" {
+		return fmt.Errorf("invalid judger schema_version: %q", out.SchemaVersion)
+	}
+	if strings.TrimSpace(out.Notes) == "" {
+		return fmt.Errorf("judger notes are required")
+	}
+	return nil
 }

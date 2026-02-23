@@ -12,7 +12,7 @@ import (
 
 func runLoop(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: agentcli loop [run|judge|autofix|all] [--threshold score] [--max-iterations n] [--repo-root path] [--branch name] [--mode classic|committee] [--role-config file] [--seed n] [--budget n] [--api url]")
+		fmt.Fprintln(os.Stderr, "usage: agentcli loop [run|judge|autofix|all|compare] [--threshold score] [--max-iterations n] [--repo-root path] [--branch name] [--mode classic|committee] [--role-config file] [--seed n] [--budget n] [--run-a ref] [--run-b ref] [--api url]")
 		return agentcli.ExitUsage
 	}
 
@@ -24,6 +24,24 @@ func runLoop(args []string) int {
 	}
 
 	var result harnessloop.RunResult
+	if action == "compare" {
+		if opts.APIURL != "" {
+			fmt.Fprintln(os.Stderr, "compare action is local-only; remove --api")
+			return agentcli.ExitUsage
+		}
+		if opts.RunA == "" || opts.RunB == "" {
+			fmt.Fprintln(os.Stderr, "compare action requires --run-a and --run-b")
+			return agentcli.ExitUsage
+		}
+		report, err := harnessloop.CompareRuns(opts.RepoRoot, opts.RunA, opts.RunB)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			return agentcli.ExitFailure
+		}
+		out, _ := json.MarshalIndent(report, "", "  ")
+		fmt.Fprintln(os.Stdout, string(out))
+		return agentcli.ExitSuccess
+	}
 	if opts.APIURL != "" {
 		result, err = loopapi.Run(opts.APIURL, loopapi.RunRequest{
 			Action:        action,
@@ -84,6 +102,8 @@ type loopFlags struct {
 	RoleConfig    string
 	Seed          int64
 	Budget        int
+	RunA          string
+	RunB          string
 }
 
 func parseLoopFlags(args []string) (loopFlags, error) {
@@ -159,6 +179,18 @@ func parseLoopFlags(args []string) (loopFlags, error) {
 			if _, err := fmt.Sscanf(args[i+1], "%d", &opts.Budget); err != nil {
 				return loopFlags{}, fmt.Errorf("invalid --budget value")
 			}
+			i++
+		case "--run-a":
+			if i+1 >= len(args) {
+				return loopFlags{}, fmt.Errorf("--run-a requires a value")
+			}
+			opts.RunA = args[i+1]
+			i++
+		case "--run-b":
+			if i+1 >= len(args) {
+				return loopFlags{}, fmt.Errorf("--run-b requires a value")
+			}
+			opts.RunB = args[i+1]
 			i++
 		default:
 			return loopFlags{}, fmt.Errorf("unexpected argument: %s", args[i])

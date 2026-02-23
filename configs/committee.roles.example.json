@@ -1,14 +1,14 @@
 {
   "planner": {
-    "strategy": "builtin",
-    "command": ""
+    "strategy": "external",
+    "command": "go run ./internal/tools/roleagent --role planner --context \"$HARNESS_CONTEXT_FILE\""
   },
   "fixer": {
-    "strategy": "builtin",
-    "command": ""
+    "strategy": "external",
+    "command": "go run ./internal/tools/roleagent --role fixer --context \"$HARNESS_CONTEXT_FILE\" --repo-root \"$HARNESS_REPO_ROOT\""
   },
   "judger": {
-    "strategy": "builtin",
-    "command": ""
+    "strategy": "external",
+    "command": "go run ./internal/tools/roleagent --role judger --context \"$HARNESS_CONTEXT_FILE\""
   }
 }

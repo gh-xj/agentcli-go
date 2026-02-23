@@ -73,13 +73,14 @@ type CommitteeMeta struct {
 }
 
 type RoleExecution struct {
-	Strategy   string   `json:"strategy"`
-	Command    string   `json:"command,omitempty"`
-	Artifacts  string   `json:"artifacts,omitempty"`
-	Applied    []string `json:"applied,omitempty"`
-	Notes      string   `json:"notes,omitempty"`
-	ExitCode   int      `json:"exit_code,omitempty"`
-	StderrTail string   `json:"stderr_tail,omitempty"`
+	Strategy    string   `json:"strategy"`
+	Independent bool     `json:"independent,omitempty"`
+	Command     string   `json:"command,omitempty"`
+	Artifacts   string   `json:"artifacts,omitempty"`
+	Applied     []string `json:"applied,omitempty"`
+	Notes       string   `json:"notes,omitempty"`
+	ExitCode    int      `json:"exit_code,omitempty"`
+	StderrTail  string   `json:"stderr_tail,omitempty"`
 }
 
 type RoleConfig struct {

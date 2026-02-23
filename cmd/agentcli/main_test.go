@@ -151,11 +151,13 @@ func TestParseLoopFlags(t *testing.T) {
 		"--role-config", ".docs/roles.json",
 		"--seed", "7",
 		"--budget", "3",
+		"--run-a", "runA",
+		"--run-b", "runB",
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if opts.RepoRoot != "." || opts.Threshold != 8.5 || opts.MaxIterations != 2 || opts.Branch != "autofix/test" || opts.APIURL != "http://127.0.0.1:7878" || opts.Mode != "committee" || opts.RoleConfig != ".docs/roles.json" || opts.Seed != 7 || opts.Budget != 3 {
+	if opts.RepoRoot != "." || opts.Threshold != 8.5 || opts.MaxIterations != 2 || opts.Branch != "autofix/test" || opts.APIURL != "http://127.0.0.1:7878" || opts.Mode != "committee" || opts.RoleConfig != ".docs/roles.json" || opts.Seed != 7 || opts.Budget != 3 || opts.RunA != "runA" || opts.RunB != "runB" {
 		t.Fatalf("unexpected parse values: %+v", opts)
 	}
 }

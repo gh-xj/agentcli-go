@@ -10,6 +10,7 @@ A reusable multi-agent verification/autofix loop that works across repositories 
 - API: `agentcli loop --api http://127.0.0.1:7878 ...`
 - Server: `agentcli loop-server --addr 127.0.0.1:7878 --repo-root .`
 - Committee mode: `agentcli loop all --mode committee --role-config <file>`
+- Compare runs: `agentcli loop compare --run-a <id-or-path> --run-b <id-or-path>`
 
 ## Required artifacts
 
@@ -35,3 +36,4 @@ A reusable multi-agent verification/autofix loop that works across repositories 
 - Branch policy
 - Score threshold
 - Role commands (planner/fixer/judger) with deterministic context contract
+- Independent judger default (no planner/fixer reasoning context)

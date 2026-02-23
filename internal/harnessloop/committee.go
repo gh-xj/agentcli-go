@@ -10,16 +10,19 @@ import (
 )
 
 type plannerOutput struct {
-	Summary    string   `json:"summary"`
-	FixTargets []string `json:"fix_targets"`
+	SchemaVersion string   `json:"schema_version"`
+	Summary       string   `json:"summary"`
+	FixTargets    []string `json:"fix_targets"`
 }
 
 type fixerOutput struct {
-	Applied []string `json:"applied"`
-	Notes   string   `json:"notes"`
+	SchemaVersion string   `json:"schema_version"`
+	Applied       []string `json:"applied"`
+	Notes         string   `json:"notes"`
 }
 
 type judgerOutput struct {
+	SchemaVersion string    `json:"schema_version"`
 	ExtraFindings []Finding `json:"extra_findings"`
 	Notes         string    `json:"notes"`
 }
@@ -58,7 +61,7 @@ func runCommittee(cfg Config, agentcliBin string, started time.Time, runID strin
 		Committee: &CommitteeMeta{
 			Planner: RoleExecution{Strategy: strategyOrBuiltin(roles.Planner)},
 			Fixer:   RoleExecution{Strategy: strategyOrBuiltin(roles.Fixer)},
-			Judger:  RoleExecution{Strategy: strategyOrBuiltin(roles.Judger)},
+			Judger:  RoleExecution{Strategy: strategyOrBuiltin(roles.Judger), Independent: true},
 		},
 	}
 

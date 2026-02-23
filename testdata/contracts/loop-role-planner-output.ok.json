@@ -1,0 +1,5 @@
+{
+  "schema_version": "v1",
+  "summary": "deterministic planner",
+  "fix_targets": ["none"]
+}

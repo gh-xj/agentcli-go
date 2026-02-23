@@ -1,0 +1,28 @@
+name: Committee Nightly
+
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  committee-judge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run committee judge gate
+        run: task loop:committee:judge
+
+      - name: Upload committee loop artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: committee-loop-artifacts
+          path: .docs/onboarding-loop

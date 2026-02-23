@@ -1,0 +1,8 @@
+{
+  "schema_version": "v1",
+  "required_keys": [
+    "schema_version",
+    "summary",
+    "fix_targets"
+  ]
+}
