@@ -17,9 +17,8 @@ A reusable multi-agent verification/autofix loop that works across repositories 
 ## Required artifacts
 
 - `.docs/onboarding-loop/latest-summary.json`
-- `.docs/onboarding-loop/findings.json`
-- timestamped markdown reports
-- per-run committee artifacts: `.docs/onboarding-loop/runs/<run-id>/iter-XX/*`
+- `.docs/onboarding-loop/review/latest.md`
+- per-run committee artifacts (lab + `--verbose-artifacts`): `.docs/onboarding-loop/runs/<run-id>/iter-XX/*`
 
 ## Judge contract
 

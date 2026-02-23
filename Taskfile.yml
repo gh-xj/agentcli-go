@@ -249,6 +249,11 @@ tasks:
     cmds:
       - go run ./cmd/agentcli loop judge --repo-root . --threshold 9.0 --max-iterations 1
 
+  loop:doctor:
+    desc: Check lean/lab readiness for verification loop
+    cmds:
+      - go run ./cmd/agentcli loop doctor --repo-root .
+
   loop:judge:api:
     desc: Run onboarding judge via local loop API
     cmds:

@@ -140,6 +140,17 @@ func TestRunLoopUnknownAction(t *testing.T) {
 	}
 }
 
+func TestRunLoopDoctor(t *testing.T) {
+	repoRoot, err := filepath.Abs("../..")
+	if err != nil {
+		t.Fatalf("resolve repo root: %v", err)
+	}
+	exitCode := run([]string{"loop", "doctor", "--repo-root", repoRoot})
+	if exitCode != agentcli.ExitSuccess {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
+	}
+}
+
 func TestParseLoopFlags(t *testing.T) {
 	opts, err := parseLoopFlags([]string{
 		"--repo-root", ".",

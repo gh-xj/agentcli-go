@@ -2,6 +2,8 @@
 
 Use committee mode to run a role-based verification experiment.
 
+For daily low-cognitive workflow, use [`docs/loop/quickstart.md`](./quickstart.md).
+
 ## Roles
 
 - planner: converts findings into a fix plan
@@ -58,6 +60,10 @@ Saved per run at:
 - `.docs/onboarding-loop/runs/<run-id>/final-report.json`
 
 This makes A/B experiments reproducible and auditable.
+
+Reviewer summary:
+
+- `.docs/onboarding-loop/review/latest.md`
 
 ## Benchmark Floor
 

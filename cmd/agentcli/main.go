@@ -204,7 +204,7 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  agentcli new [--dir path] [--module module/path] <name>")
 	fmt.Fprintln(os.Stderr, "  agentcli add command [--dir path] [--description text] [--preset name] [--list-presets] <name>")
 	fmt.Fprintln(os.Stderr, "  agentcli doctor [--dir path] [--json]")
-	fmt.Fprintln(os.Stderr, "  agentcli loop [run|judge|autofix] [--repo-root path] [--threshold score] [--max-iterations n] [--branch name] [--api url]")
+	fmt.Fprintln(os.Stderr, "  agentcli loop [run|judge|autofix|doctor] [--repo-root path] [--threshold score] [--max-iterations n] [--branch name] [--api url]")
 	fmt.Fprintln(os.Stderr, "  agentcli loop lab [compare|replay|run|judge|autofix] [advanced flags]")
 	fmt.Fprintln(os.Stderr, "  agentcli loop-server [--addr host:port] [--repo-root path]")
 	fmt.Fprintln(os.Stderr, "")

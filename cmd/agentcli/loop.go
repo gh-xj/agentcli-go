@@ -12,7 +12,7 @@ import (
 
 func runLoop(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: agentcli loop [run|judge|autofix|lab]")
+		fmt.Fprintln(os.Stderr, "usage: agentcli loop [run|judge|autofix|doctor|lab]")
 		return agentcli.ExitUsage
 	}
 
@@ -21,6 +21,21 @@ func runLoop(args []string) int {
 	}
 
 	action := args[0]
+	if action == "doctor" {
+		opts, err := parseLoopFlags(args[1:])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			return agentcli.ExitUsage
+		}
+		report := harnessloop.LoopDoctor(opts.RepoRoot)
+		out, _ := json.MarshalIndent(report, "", "  ")
+		fmt.Fprintln(os.Stdout, string(out))
+		if report.LeanReady {
+			return agentcli.ExitSuccess
+		}
+		return agentcli.ExitFailure
+	}
+
 	if action != "run" && action != "judge" && action != "autofix" {
 		fmt.Fprintf(os.Stderr, "unknown loop action: %s\n", action)
 		fmt.Fprintln(os.Stderr, "use 'agentcli loop lab' for advanced actions")

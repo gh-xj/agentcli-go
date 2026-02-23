@@ -176,7 +176,13 @@ Run role-based planner/fixer/judger verification:
 task loop:committee
 ```
 
-Artifacts are stored at `.docs/onboarding-loop/runs/<run-id>/`.
+Lean health check:
+
+```bash
+agentcli loop doctor --repo-root .
+```
+
+Primary reviewer artifact: `.docs/onboarding-loop/review/latest.md`.
 
 Compare two experiment runs:
 
@@ -205,6 +211,7 @@ Examples index: [`examples/README.md`](./examples/README.md)
 Simple docs entry points:
 
 - https://gh-xj.github.io/agentcli-go/
+- [`docs/loop/quickstart.md`](./docs/loop/quickstart.md)
 - [`docs/site/index.md`](./docs/site/index.md)
 - [`docs/site/getting-started.md`](./docs/site/getting-started.md)
 - [`docs/site/ai-agent-playbook.md`](./docs/site/ai-agent-playbook.md)
