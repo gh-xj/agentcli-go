@@ -15,6 +15,12 @@ Framework modules for building Go CLI projects with an agent-first workflow.
 
 # AgentCLI - GO
 
+## 2-minute value
+
+- Generate a standards-compliant Go CLI in under a minute.
+- Keep it deterministic with `task ci` and docs-aware checks.
+- Onboard another AI agent with one documented sequence.
+
 ## Why
 
 - Skip framework boilerplate for AI-assisted CLI creation.
@@ -71,9 +77,16 @@ agentcli-go (library + scaffold CLI)
            ▼
 Generated project (task/verify, schemas, docs:check, loop/quality)
            │
-           ▼
+   ▼
 Lower agent cognitive load + safer iteration
 ```
+
+## How this helps discoverability
+
+- Stable, predictable output format (`--json`) and task gates help people trust what they see.
+- Strong documentation structure (`README` + `agents.md` + skill docs) reduces setup confusion.
+- Ready-to-use agent entrypoint on ClawHub:
+  - https://clawhub.ai/gh-xj/agentcli-go
 
 ## Copy-paste onboarding prompt (for agents)
 
@@ -115,6 +128,9 @@ go run . --help
 ```
 
 If this works, your team gets a scaffolded CLI with harness-friendly structure without manual setup.
+
+If this project saves your agent setup time, give it a star on GitHub to improve discovery for other teams:
+https://github.com/gh-xj/agentcli-go
 
 ## FAQ (1-minute)
 
