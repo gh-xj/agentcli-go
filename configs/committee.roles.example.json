@@ -1,0 +1,14 @@
+{
+  "planner": {
+    "strategy": "builtin",
+    "command": ""
+  },
+  "fixer": {
+    "strategy": "builtin",
+    "command": ""
+  },
+  "judger": {
+    "strategy": "builtin",
+    "command": ""
+  }
+}

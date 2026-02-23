@@ -49,6 +49,9 @@ type RunResult struct {
 	Iterations    int            `json:"iterations"`
 	Branch        string         `json:"branch"`
 	FixesApplied  []string       `json:"fixes_applied"`
+	Mode          string         `json:"mode,omitempty"`
+	RunID         string         `json:"run_id,omitempty"`
+	Committee     *CommitteeMeta `json:"committee,omitempty"`
 }
 
 type JudgeScore struct {
@@ -61,4 +64,31 @@ type JudgeScore struct {
 	ScenarioPassRate     float64 `json:"scenario_pass_rate"`
 	CounterIntuitiveFind int     `json:"counter_intuitive_findings"`
 	HardFailures         int     `json:"hard_failures"`
+}
+
+type CommitteeMeta struct {
+	Planner RoleExecution `json:"planner"`
+	Fixer   RoleExecution `json:"fixer"`
+	Judger  RoleExecution `json:"judger"`
+}
+
+type RoleExecution struct {
+	Strategy   string   `json:"strategy"`
+	Command    string   `json:"command,omitempty"`
+	Artifacts  string   `json:"artifacts,omitempty"`
+	Applied    []string `json:"applied,omitempty"`
+	Notes      string   `json:"notes,omitempty"`
+	ExitCode   int      `json:"exit_code,omitempty"`
+	StderrTail string   `json:"stderr_tail,omitempty"`
+}
+
+type RoleConfig struct {
+	Planner RoleSpec `json:"planner"`
+	Fixer   RoleSpec `json:"fixer"`
+	Judger  RoleSpec `json:"judger"`
+}
+
+type RoleSpec struct {
+	Strategy string `json:"strategy"`
+	Command  string `json:"command"`
 }

@@ -14,6 +14,10 @@ type RunRequest struct {
 	Threshold     float64 `json:"threshold"`
 	MaxIterations int     `json:"max_iterations"`
 	Branch        string  `json:"branch"`
+	Mode          string  `json:"mode"`
+	RoleConfig    string  `json:"role_config"`
+	Seed          int64   `json:"seed"`
+	Budget        int     `json:"budget"`
 }
 
 func Serve(addr, defaultRepoRoot string) error {
@@ -33,10 +37,14 @@ func Serve(addr, defaultRepoRoot string) error {
 			return
 		}
 		cfg := harnessloop.Config{
-			RepoRoot:      strings.TrimSpace(req.RepoRoot),
-			Threshold:     req.Threshold,
-			MaxIterations: req.MaxIterations,
-			Branch:        req.Branch,
+			RepoRoot:       strings.TrimSpace(req.RepoRoot),
+			Threshold:      req.Threshold,
+			MaxIterations:  req.MaxIterations,
+			Branch:         req.Branch,
+			Mode:           req.Mode,
+			RoleConfigPath: req.RoleConfig,
+			Seed:           req.Seed,
+			Budget:         req.Budget,
 		}
 		if cfg.RepoRoot == "" {
 			cfg.RepoRoot = defaultRepoRoot

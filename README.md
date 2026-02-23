@@ -173,6 +173,16 @@ This repository enforces output contracts using:
 - positive fixtures: `testdata/contracts/*.ok.json`
 - negative fixtures: `testdata/contracts/*.bad-*.json`
 
+## Committee Verification Loop
+
+Run role-based planner/fixer/judger verification:
+
+```bash
+task loop:committee
+```
+
+Artifacts are stored at `.docs/onboarding-loop/runs/<run-id>/`.
+
 ## Examples
 
 Runnable examples:

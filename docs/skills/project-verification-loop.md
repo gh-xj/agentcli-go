@@ -9,12 +9,14 @@ A reusable multi-agent verification/autofix loop that works across repositories 
 - Local CLI: `agentcli loop ...`
 - API: `agentcli loop --api http://127.0.0.1:7878 ...`
 - Server: `agentcli loop-server --addr 127.0.0.1:7878 --repo-root .`
+- Committee mode: `agentcli loop all --mode committee --role-config <file>`
 
 ## Required artifacts
 
 - `.docs/onboarding-loop/latest-summary.json`
 - `.docs/onboarding-loop/findings.json`
 - timestamped markdown reports
+- per-run committee artifacts: `.docs/onboarding-loop/runs/<run-id>/iter-XX/*`
 
 ## Judge contract
 
@@ -32,3 +34,4 @@ A reusable multi-agent verification/autofix loop that works across repositories 
 - Fix catalog
 - Branch policy
 - Score threshold
+- Role commands (planner/fixer/judger) with deterministic context contract

@@ -141,11 +141,28 @@ func TestRunLoopUnknownAction(t *testing.T) {
 }
 
 func TestParseLoopFlags(t *testing.T) {
-	repoRoot, threshold, maxIterations, branch, apiURL, err := parseLoopFlags([]string{"--repo-root", ".", "--threshold", "8.5", "--max-iterations", "2", "--branch", "autofix/test", "--api", "http://127.0.0.1:7878"})
+	opts, err := parseLoopFlags([]string{
+		"--repo-root", ".",
+		"--threshold", "8.5",
+		"--max-iterations", "2",
+		"--branch", "autofix/test",
+		"--api", "http://127.0.0.1:7878",
+		"--mode", "committee",
+		"--role-config", ".docs/roles.json",
+		"--seed", "7",
+		"--budget", "3",
+	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if repoRoot != "." || threshold != 8.5 || maxIterations != 2 || branch != "autofix/test" || apiURL != "http://127.0.0.1:7878" {
-		t.Fatalf("unexpected parse values: %q %.2f %d %q %q", repoRoot, threshold, maxIterations, branch, apiURL)
+	if opts.RepoRoot != "." || opts.Threshold != 8.5 || opts.MaxIterations != 2 || opts.Branch != "autofix/test" || opts.APIURL != "http://127.0.0.1:7878" || opts.Mode != "committee" || opts.RoleConfig != ".docs/roles.json" || opts.Seed != 7 || opts.Budget != 3 {
+		t.Fatalf("unexpected parse values: %+v", opts)
+	}
+}
+
+func TestParseLoopFlagsInvalidMode(t *testing.T) {
+	_, err := parseLoopFlags([]string{"--mode", "random"})
+	if err == nil {
+		t.Fatal("expected error for invalid mode")
 	}
 }

@@ -6,15 +6,59 @@ import (
 )
 
 type Config struct {
-	RepoRoot      string
-	Threshold     float64
-	MaxIterations int
-	AutoFix       bool
-	AutoCommit    bool
-	Branch        string
+	RepoRoot       string
+	Threshold      float64
+	MaxIterations  int
+	AutoFix        bool
+	AutoCommit     bool
+	Branch         string
+	Mode           string
+	RoleConfigPath string
+	Seed           int64
+	Budget         int
 }
 
 func RunLoop(cfg Config) (RunResult, error) {
+	cfg = normalizeConfig(cfg)
+
+	started := time.Now().UTC()
+	runID := started.Format("20060102-150405")
+	agentcliBin, err := BuildLocalAgentCLIBinary(cfg.RepoRoot)
+	if err != nil {
+		return RunResult{}, err
+	}
+
+	var result RunResult
+	switch cfg.Mode {
+	case "committee":
+		result, err = runCommittee(cfg, agentcliBin, started, runID)
+	default:
+		result, err = runClassic(cfg, agentcliBin, started, runID)
+	}
+	if err != nil {
+		return result, err
+	}
+
+	if err := WriteReports(cfg.RepoRoot, result); err != nil {
+		return result, err
+	}
+
+	if cfg.AutoCommit {
+		if err := EnsureBranch(cfg.RepoRoot, cfg.Branch); err != nil {
+			return result, err
+		}
+		committed, err := CommitIfDirty(cfg.RepoRoot, fmt.Sprintf("chore: onboarding loop %s score %.2f", result.Mode, result.Judge.Score))
+		if err != nil {
+			return result, err
+		}
+		if committed {
+			result.Branch = cfg.Branch
+		}
+	}
+	return result, nil
+}
+
+func normalizeConfig(cfg Config) Config {
 	if cfg.Threshold <= 0 {
 		cfg.Threshold = 9.0
 	}
@@ -24,15 +68,21 @@ func RunLoop(cfg Config) (RunResult, error) {
 	if cfg.Branch == "" {
 		cfg.Branch = "autofix/onboarding-loop"
 	}
-
-	started := time.Now().UTC()
-	agentcliBin, err := BuildLocalAgentCLIBinary(cfg.RepoRoot)
-	if err != nil {
-		return RunResult{}, err
+	if cfg.Mode == "" {
+		cfg.Mode = "classic"
 	}
+	if cfg.Budget <= 0 {
+		cfg.Budget = 1
+	}
+	return cfg
+}
 
+func runClassic(cfg Config, agentcliBin string, started time.Time, runID string) (RunResult, error) {
 	var best RunResult
 	best.Judge.Score = -1
+	best.Mode = cfg.Mode
+	best.RunID = runID
+
 	iterations := 0
 	for ; iterations < cfg.MaxIterations; iterations++ {
 		scenario := DefaultOnboardingScenario(agentcliBin)
@@ -52,6 +102,8 @@ func RunLoop(cfg Config) (RunResult, error) {
 			Judge:         judge,
 			Iterations:    iterations + 1,
 			Branch:        CurrentBranch(cfg.RepoRoot),
+			Mode:          cfg.Mode,
+			RunID:         runID,
 		}
 		if judge.Score > best.Judge.Score {
 			best = run
@@ -71,22 +123,5 @@ func RunLoop(cfg Config) (RunResult, error) {
 	}
 	best.Iterations = iterations + 1
 	best.FinishedAt = time.Now().UTC()
-
-	if err := WriteReports(cfg.RepoRoot, best); err != nil {
-		return best, err
-	}
-
-	if cfg.AutoCommit {
-		if err := EnsureBranch(cfg.RepoRoot, cfg.Branch); err != nil {
-			return best, err
-		}
-		committed, err := CommitIfDirty(cfg.RepoRoot, fmt.Sprintf("chore: onboarding loop autofix score %.2f", best.Judge.Score))
-		if err != nil {
-			return best, err
-		}
-		if committed {
-			best.Branch = cfg.Branch
-		}
-	}
 	return best, nil
 }

@@ -258,6 +258,11 @@ tasks:
     cmds:
       - go run ./cmd/agentcli loop all --repo-root . --threshold 9.0 --max-iterations 3
 
+  loop:committee:
+    desc: Role-based committee experiment loop with persisted run artifacts
+    cmds:
+      - go run ./cmd/agentcli loop all --repo-root . --mode committee --role-config ./configs/committee.roles.example.json --threshold 9.0 --max-iterations 3
+
   loop:evolve:
     desc: Project skill trigger (local evolve loop + push branch + open/update PR)
     cmds:

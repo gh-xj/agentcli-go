@@ -12,32 +12,40 @@ import (
 
 func runLoop(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: agentcli loop [run|judge|autofix|all] [--threshold score] [--max-iterations n] [--repo-root path] [--branch name] [--api url]")
+		fmt.Fprintln(os.Stderr, "usage: agentcli loop [run|judge|autofix|all] [--threshold score] [--max-iterations n] [--repo-root path] [--branch name] [--mode classic|committee] [--role-config file] [--seed n] [--budget n] [--api url]")
 		return agentcli.ExitUsage
 	}
 
 	action := args[0]
-	repoRoot, threshold, maxIterations, branch, apiURL, err := parseLoopFlags(args[1:])
+	opts, err := parseLoopFlags(args[1:])
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return agentcli.ExitUsage
 	}
 
 	var result harnessloop.RunResult
-	if apiURL != "" {
-		result, err = loopapi.Run(apiURL, loopapi.RunRequest{
+	if opts.APIURL != "" {
+		result, err = loopapi.Run(opts.APIURL, loopapi.RunRequest{
 			Action:        action,
-			RepoRoot:      repoRoot,
-			Threshold:     threshold,
-			MaxIterations: maxIterations,
-			Branch:        branch,
+			RepoRoot:      opts.RepoRoot,
+			Threshold:     opts.Threshold,
+			MaxIterations: opts.MaxIterations,
+			Branch:        opts.Branch,
+			Mode:          opts.Mode,
+			RoleConfig:    opts.RoleConfig,
+			Seed:          opts.Seed,
+			Budget:        opts.Budget,
 		})
 	} else {
 		cfg := harnessloop.Config{
-			RepoRoot:      repoRoot,
-			Threshold:     threshold,
-			MaxIterations: maxIterations,
-			Branch:        branch,
+			RepoRoot:       opts.RepoRoot,
+			Threshold:      opts.Threshold,
+			MaxIterations:  opts.MaxIterations,
+			Branch:         opts.Branch,
+			Mode:           opts.Mode,
+			RoleConfigPath: opts.RoleConfig,
+			Seed:           opts.Seed,
+			Budget:         opts.Budget,
 		}
 
 		switch action {
@@ -66,51 +74,99 @@ func runLoop(args []string) int {
 	return agentcli.ExitFailure
 }
 
-func parseLoopFlags(args []string) (string, float64, int, string, string, error) {
-	repoRoot := "."
-	threshold := 9.0
-	maxIterations := 3
-	branch := "autofix/onboarding-loop"
-	apiURL := ""
+type loopFlags struct {
+	RepoRoot      string
+	Threshold     float64
+	MaxIterations int
+	Branch        string
+	APIURL        string
+	Mode          string
+	RoleConfig    string
+	Seed          int64
+	Budget        int
+}
+
+func parseLoopFlags(args []string) (loopFlags, error) {
+	opts := loopFlags{
+		RepoRoot:      ".",
+		Threshold:     9.0,
+		MaxIterations: 3,
+		Branch:        "autofix/onboarding-loop",
+		Mode:          "classic",
+		Budget:        1,
+	}
+
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--repo-root":
 			if i+1 >= len(args) {
-				return "", 0, 0, "", "", fmt.Errorf("--repo-root requires a value")
+				return loopFlags{}, fmt.Errorf("--repo-root requires a value")
 			}
-			repoRoot = args[i+1]
+			opts.RepoRoot = args[i+1]
 			i++
 		case "--threshold":
 			if i+1 >= len(args) {
-				return "", 0, 0, "", "", fmt.Errorf("--threshold requires a value")
+				return loopFlags{}, fmt.Errorf("--threshold requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%f", &threshold); err != nil {
-				return "", 0, 0, "", "", fmt.Errorf("invalid --threshold value")
+			if _, err := fmt.Sscanf(args[i+1], "%f", &opts.Threshold); err != nil {
+				return loopFlags{}, fmt.Errorf("invalid --threshold value")
 			}
 			i++
 		case "--max-iterations":
 			if i+1 >= len(args) {
-				return "", 0, 0, "", "", fmt.Errorf("--max-iterations requires a value")
+				return loopFlags{}, fmt.Errorf("--max-iterations requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &maxIterations); err != nil {
-				return "", 0, 0, "", "", fmt.Errorf("invalid --max-iterations value")
+			if _, err := fmt.Sscanf(args[i+1], "%d", &opts.MaxIterations); err != nil {
+				return loopFlags{}, fmt.Errorf("invalid --max-iterations value")
 			}
 			i++
 		case "--branch":
 			if i+1 >= len(args) {
-				return "", 0, 0, "", "", fmt.Errorf("--branch requires a value")
+				return loopFlags{}, fmt.Errorf("--branch requires a value")
 			}
-			branch = args[i+1]
+			opts.Branch = args[i+1]
 			i++
 		case "--api":
 			if i+1 >= len(args) {
-				return "", 0, 0, "", "", fmt.Errorf("--api requires a value")
+				return loopFlags{}, fmt.Errorf("--api requires a value")
 			}
-			apiURL = args[i+1]
+			opts.APIURL = args[i+1]
+			i++
+		case "--mode":
+			if i+1 >= len(args) {
+				return loopFlags{}, fmt.Errorf("--mode requires a value")
+			}
+			opts.Mode = args[i+1]
+			i++
+		case "--role-config":
+			if i+1 >= len(args) {
+				return loopFlags{}, fmt.Errorf("--role-config requires a value")
+			}
+			opts.RoleConfig = args[i+1]
+			i++
+		case "--seed":
+			if i+1 >= len(args) {
+				return loopFlags{}, fmt.Errorf("--seed requires a value")
+			}
+			if _, err := fmt.Sscanf(args[i+1], "%d", &opts.Seed); err != nil {
+				return loopFlags{}, fmt.Errorf("invalid --seed value")
+			}
+			i++
+		case "--budget":
+			if i+1 >= len(args) {
+				return loopFlags{}, fmt.Errorf("--budget requires a value")
+			}
+			if _, err := fmt.Sscanf(args[i+1], "%d", &opts.Budget); err != nil {
+				return loopFlags{}, fmt.Errorf("invalid --budget value")
+			}
 			i++
 		default:
-			return "", 0, 0, "", "", fmt.Errorf("unexpected argument: %s", args[i])
+			return loopFlags{}, fmt.Errorf("unexpected argument: %s", args[i])
 		}
 	}
-	return repoRoot, threshold, maxIterations, branch, apiURL, nil
+
+	if opts.Mode != "classic" && opts.Mode != "committee" {
+		return loopFlags{}, fmt.Errorf("invalid --mode value: %s", opts.Mode)
+	}
+	return opts, nil
 }
