@@ -38,6 +38,7 @@ Use this in first contact when onboarding to this repo:
 
 ```text
 I am onboarding to use this repository as an agent skill.
+Project URL: https://github.com/gh-xj/agentcli-go
 
 1) Read in this order:
    - CLAUDE.md

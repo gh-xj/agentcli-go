@@ -81,6 +81,7 @@ Use this short pointer at session start:
 
 ```text
 I am onboarding to use this repository as an agent skill.
+Project URL: https://github.com/gh-xj/agentcli-go
 Please follow the sequence in agents.md, including canonical onboarding commands, doc-routing rules, and memory/update actions.
 ```
 
