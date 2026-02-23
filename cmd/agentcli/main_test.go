@@ -141,11 +141,11 @@ func TestRunLoopUnknownAction(t *testing.T) {
 }
 
 func TestParseLoopFlags(t *testing.T) {
-	repoRoot, threshold, maxIterations, apiURL, err := parseLoopFlags([]string{"--repo-root", ".", "--threshold", "8.5", "--max-iterations", "2", "--api", "http://127.0.0.1:7878"})
+	repoRoot, threshold, maxIterations, branch, apiURL, err := parseLoopFlags([]string{"--repo-root", ".", "--threshold", "8.5", "--max-iterations", "2", "--branch", "autofix/test", "--api", "http://127.0.0.1:7878"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if repoRoot != "." || threshold != 8.5 || maxIterations != 2 || apiURL != "http://127.0.0.1:7878" {
-		t.Fatalf("unexpected parse values: %q %.2f %d %q", repoRoot, threshold, maxIterations, apiURL)
+	if repoRoot != "." || threshold != 8.5 || maxIterations != 2 || branch != "autofix/test" || apiURL != "http://127.0.0.1:7878" {
+		t.Fatalf("unexpected parse values: %q %.2f %d %q %q", repoRoot, threshold, maxIterations, branch, apiURL)
 	}
 }

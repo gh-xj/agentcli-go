@@ -257,3 +257,8 @@ tasks:
     desc: Full onboarding reinforcement loop
     cmds:
       - go run ./cmd/agentcli loop all --repo-root . --threshold 9.0 --max-iterations 3
+
+  loop:evolve:
+    desc: Project skill trigger (local evolve loop + push branch + open/update PR)
+    cmds:
+      - BASE_BRANCH={{.BASE_BRANCH | default "main"}} LOOP_BRANCH={{.LOOP_BRANCH | default "autofix/onboarding-loop"}} THRESHOLD={{.THRESHOLD | default "9.0"}} MAX_ITERATIONS={{.MAX_ITERATIONS | default "5"}} scripts/skill-loop/run.sh

@@ -12,12 +12,12 @@ import (
 
 func runLoop(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: agentcli loop [run|judge|autofix|all] [--threshold score] [--max-iterations n] [--repo-root path] [--api url]")
+		fmt.Fprintln(os.Stderr, "usage: agentcli loop [run|judge|autofix|all] [--threshold score] [--max-iterations n] [--repo-root path] [--branch name] [--api url]")
 		return agentcli.ExitUsage
 	}
 
 	action := args[0]
-	repoRoot, threshold, maxIterations, apiURL, err := parseLoopFlags(args[1:])
+	repoRoot, threshold, maxIterations, branch, apiURL, err := parseLoopFlags(args[1:])
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return agentcli.ExitUsage
@@ -30,14 +30,14 @@ func runLoop(args []string) int {
 			RepoRoot:      repoRoot,
 			Threshold:     threshold,
 			MaxIterations: maxIterations,
-			Branch:        "autofix/onboarding-loop",
+			Branch:        branch,
 		})
 	} else {
 		cfg := harnessloop.Config{
 			RepoRoot:      repoRoot,
 			Threshold:     threshold,
 			MaxIterations: maxIterations,
-			Branch:        "autofix/onboarding-loop",
+			Branch:        branch,
 		}
 
 		switch action {
@@ -66,44 +66,51 @@ func runLoop(args []string) int {
 	return agentcli.ExitFailure
 }
 
-func parseLoopFlags(args []string) (string, float64, int, string, error) {
+func parseLoopFlags(args []string) (string, float64, int, string, string, error) {
 	repoRoot := "."
 	threshold := 9.0
 	maxIterations := 3
+	branch := "autofix/onboarding-loop"
 	apiURL := ""
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--repo-root":
 			if i+1 >= len(args) {
-				return "", 0, 0, "", fmt.Errorf("--repo-root requires a value")
+				return "", 0, 0, "", "", fmt.Errorf("--repo-root requires a value")
 			}
 			repoRoot = args[i+1]
 			i++
 		case "--threshold":
 			if i+1 >= len(args) {
-				return "", 0, 0, "", fmt.Errorf("--threshold requires a value")
+				return "", 0, 0, "", "", fmt.Errorf("--threshold requires a value")
 			}
 			if _, err := fmt.Sscanf(args[i+1], "%f", &threshold); err != nil {
-				return "", 0, 0, "", fmt.Errorf("invalid --threshold value")
+				return "", 0, 0, "", "", fmt.Errorf("invalid --threshold value")
 			}
 			i++
 		case "--max-iterations":
 			if i+1 >= len(args) {
-				return "", 0, 0, "", fmt.Errorf("--max-iterations requires a value")
+				return "", 0, 0, "", "", fmt.Errorf("--max-iterations requires a value")
 			}
 			if _, err := fmt.Sscanf(args[i+1], "%d", &maxIterations); err != nil {
-				return "", 0, 0, "", fmt.Errorf("invalid --max-iterations value")
+				return "", 0, 0, "", "", fmt.Errorf("invalid --max-iterations value")
 			}
+			i++
+		case "--branch":
+			if i+1 >= len(args) {
+				return "", 0, 0, "", "", fmt.Errorf("--branch requires a value")
+			}
+			branch = args[i+1]
 			i++
 		case "--api":
 			if i+1 >= len(args) {
-				return "", 0, 0, "", fmt.Errorf("--api requires a value")
+				return "", 0, 0, "", "", fmt.Errorf("--api requires a value")
 			}
 			apiURL = args[i+1]
 			i++
 		default:
-			return "", 0, 0, "", fmt.Errorf("unexpected argument: %s", args[i])
+			return "", 0, 0, "", "", fmt.Errorf("unexpected argument: %s", args[i])
 		}
 	}
-	return repoRoot, threshold, maxIterations, apiURL, nil
+	return repoRoot, threshold, maxIterations, branch, apiURL, nil
 }
