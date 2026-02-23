@@ -16,11 +16,8 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Install Task
-        uses: arduino/setup-task@v2
-
       - name: Run onboarding judge loop
-        run: task loop:judge
+        run: go run ./cmd/agentcli loop judge --repo-root . --threshold 9.0 --max-iterations 1
 
       - name: Upload loop artifacts
         if: always()
