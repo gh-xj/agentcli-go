@@ -30,6 +30,35 @@ Shared Go helpers and framework modules for building personal CLI scripts and to
 - Standardized lifecycle/error semantics so teams can onboard agents and scripts faster with fewer “first-run” surprises.
 - A practical base for scalable agent/tooling workflows, while keeping the runtime surface small and reviewable.
 
+## How this project fits
+
+`agentcli-go` is the **foundation layer** for CLI scripts in this repo:
+- As a **library**, it provides reusable CLI primitives.
+- As a **scaffold CLI**, it generates a compliant project skeleton.
+- As **harness infrastructure**, it helps AI agents produce, verify, and iterate safely.
+
+```text
+User request
+   │
+   ▼
+AI Agent (Codex/Claude/ClawHub)
+   │
+   ├─ reads onboarding + skill docs
+   │
+   ▼
+agentcli-go (library + scaffold CLI)
+   │
+   ├─ generates standard CLI layout
+   ├─ standardized flags, logging, errors, config flow
+   └─ adds harness entrypoints and docs/checks
+           │
+           ▼
+Generated project (task/verify, schemas, docs:check, loop/quality)
+           │
+           ▼
+Lower agent cognitive load + safer iteration
+```
+
 ## Installation
 
 ### Library (import into your project)
