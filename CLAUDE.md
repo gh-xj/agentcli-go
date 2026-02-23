@@ -45,9 +45,15 @@ Shared Go CLI helpers and framework modules for personal projects.
 
 ### Versioning
 - Tag releases as `v0.x.y` (pre-1.0)
-- Consumers use `go get github.com/gh-xj/agentcli-go@latest`
 
-### Consumers
-- `disk-manager` — uses aliases (`var parseArgs = agentcli.ParseArgs`) for zero-churn adoption
-- `xj-core-maintainer` (timing-fill) — calls `agentcli.ParseArgs`/`agentcli.GetArg` directly
-- `raycast go_scripts` — uses alias (`var runOsascript = agentcli.RunOsascript`)
+## Documentation Conventions
+
+- Route updates according to `docs/documentation-conventions.md`.
+- Avoid duplicating detailed onboarding or harness instructions in multiple top-level docs.
+- Keep user-facing, agent-facing, skill-facing, and durable rules in their designated documents.
+
+## AgentCLI Harness Learnings (2026-02-23)
+- In this repo, `agentcli loop all` is not a supported command; valid actions are `run|judge|autofix|doctor|quality`, and `lab` for advanced actions.
+- Use `task ci` as the canonical CI gate and `task verify` as the local aggregate verification entrypoint.
+- Keep `docs:check` aligned: `internal/tools/doccheck` expects `skills/verification-loop/SKILL.md`, so this file must exist and contain current loop command signatures.
+- In repo docs/scripts, prefer install/verification commands that are actually available in-repo (`go install ...`, `which agentcli`, `agentcli --version`, `agentcli --help`) and avoid references to missing external helper scripts.
