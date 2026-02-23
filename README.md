@@ -32,6 +32,22 @@ It helps human + AI teams ship automation that stays contract-compliant over tim
 - role-based diagnostics when deeper analysis is needed
 - drift prevention: schema checks + docs/help consistency checks
 
+## Harness Engineering for AI Agents
+
+Harness engineering means turning “agent-generated code” into a controlled system:
+
+- define explicit contracts (`doctor --json`, schema checks)
+- run deterministic gates (`task ci`, `task verify`)
+- fail fast with machine-readable diagnostics that agents can fix
+
+Recommended agent workflow with `agentcli-go`:
+
+1. Scaffold or update CLI surface (`agentcli new`, `agentcli add command`)
+2. Validate contract state (`agentcli doctor --dir ./<project> --json`)
+3. Run full gate (`cd <project> && task verify`)
+4. If failed, patch root cause and re-run from step 2
+5. Hand off with passing verification evidence
+
 ## Why This Beats Script-Based Workflows
 
 Compared with ad-hoc Bash/Python scripts, `agentcli-go` gives you:
@@ -115,16 +131,6 @@ Do these steps in order and summarize outputs:
 
 If anything fails, fix root cause and re-run verification.
 Do not skip contract checks.
-```
-
-## Quickstart
-
-```bash
-agentcli new --module example.com/mycli mycli
-agentcli add command --dir ./mycli --preset file-sync sync-data
-agentcli doctor --dir ./mycli --json
-cd mycli
-task verify
 ```
 
 ## First 5 Minutes
