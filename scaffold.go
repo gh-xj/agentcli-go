@@ -432,11 +432,15 @@ func {{.Module}}Command() command {
 					"args":    len(args),
 				})
 			}
-			{{if eq .Preset "file-sync"}}_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=file-sync: synced %d items\n", len(args))
-			{{else if eq .Preset "http-client"}}_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=http-client: request plan ready with %d args\n", len(args))
-			{{else if eq .Preset "deploy-helper"}}_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=deploy-helper: deploy checks passed for %d args\n", len(args))
-			{{else}}_, err := fmt.Fprintf(os.Stdout, "{{.Name}} executed with %d args\n", len(args))
-			{{end}}
+			{{- if eq .Preset "file-sync" }}
+			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=file-sync: synced %d items\n", len(args))
+			{{- else if eq .Preset "http-client" }}
+			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=http-client: request plan ready with %d args\n", len(args))
+			{{- else if eq .Preset "deploy-helper" }}
+			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=deploy-helper: deploy checks passed for %d args\n", len(args))
+			{{- else }}
+			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} executed with %d args\n", len(args))
+			{{- end }}
 			return err
 		},
 	}
