@@ -15,15 +15,7 @@ Ship faster with predictable automation, schema-backed checks, and repeatable pr
 ## Brand Assets
 
 - Horizontal logo: [`assets/logo/agentcli-go-logo.svg`](./assets/logo/agentcli-go-logo.svg)
-- Square mark: [`assets/logo/agentcli-go-mark.svg`](./assets/logo/agentcli-go-mark.svg)
-- Preferred usage: use the horizontal logo in docs/README headers and the square mark for icons, favicons, and social avatars.
-
-<p>
-  <img src="./assets/logo/agentcli-go-logo.svg" alt="agentcli-go horizontal logo" width="560" />
-</p>
-<p>
-  <img src="./assets/logo/agentcli-go-mark.svg" alt="agentcli-go square mark" width="120" />
-</p>
+- Preferred usage: use the horizontal logo in docs/README headers.
 
 ---
 
