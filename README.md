@@ -287,6 +287,12 @@ cd tools/replay-cli
 task verify
 ```
 
+Minimal mode (tiny scaffold surface):
+
+```bash
+agentcli new --minimal --module github.com/me/my-mini my-mini
+```
+
 Generated layout:
 
 ```
@@ -303,15 +309,21 @@ my-tool/
 └── Taskfile.yml
 ```
 
-Command presets: `file-sync`, `http-client`, `deploy-helper`, `task-replay-emit-wrapper`
+Command presets: `file-sync`, `http-client`, `deploy-helper`, `task-replay-emit-wrapper`, `task-replay-orchestrator`
 
 ### Cross-repo orchestration pattern
 
 Common pattern: run `task` in an external repo with env injection.
 
 ```bash
-agentcli add command --preset task-replay-emit-wrapper replay-emit
-go run . replay-emit --repo ../external-repo --task replay:emit --env IOC_ID=123 --env MODE=baseline
+agentcli add command --preset task-replay-orchestrator replay-orchestrate
+go run . replay-orchestrate \
+  --repo ../external-repo \
+  --task replay:emit \
+  --env IOC_ID=123 \
+  --env MODE=baseline \
+  --timeout 90s \
+  --timeout-hook 'echo timeout for $AGENTCLI_TIMEOUT_TASK'
 ```
 
 Generated wrapper contract:
@@ -319,6 +331,8 @@ Generated wrapper contract:
 - required: `--repo <path>`
 - optional: `--task <name>` (default `replay:emit`)
 - optional repeat: `--env KEY=VALUE`
+- optional: `--timeout <duration>`
+- optional: `--timeout-hook <shell command>`
 
 ---
 

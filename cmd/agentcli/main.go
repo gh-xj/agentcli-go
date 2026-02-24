@@ -43,6 +43,7 @@ func runNew(args []string) int {
 	module := ""
 	name := ""
 	inExistingModule := false
+	minimal := false
 
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
@@ -62,6 +63,8 @@ func runNew(args []string) int {
 			i++
 		case "--in-existing-module":
 			inExistingModule = true
+		case "--minimal":
+			minimal = true
 		default:
 			if name == "" {
 				name = args[i]
@@ -73,7 +76,7 @@ func runNew(args []string) int {
 	}
 
 	if name == "" {
-		fmt.Fprintln(os.Stderr, "usage: agentcli new [--dir path] [--module module/path] [--in-existing-module] <name>")
+		fmt.Fprintln(os.Stderr, "usage: agentcli new [--dir path] [--in-existing-module] [--minimal] [--module module/path] <name>")
 		return agentcli.ExitUsage
 	}
 	if inExistingModule && module != "" {
@@ -83,6 +86,7 @@ func runNew(args []string) int {
 
 	root, err := agentcli.ScaffoldNewWithOptions(baseDir, name, module, agentcli.ScaffoldNewOptions{
 		InExistingModule: inExistingModule,
+		Minimal:          minimal,
 	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
@@ -210,7 +214,8 @@ func runDoctor(args []string) int {
 func printUsage() {
 	fmt.Fprintln(os.Stderr, "agentcli scaffold CLI (from agentcli-go)")
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintln(os.Stderr, "  agentcli new [--dir path] [--module module/path] [--in-existing-module] <name>")
+	fmt.Fprintln(os.Stderr, "  agentcli new [--dir path] [--in-existing-module] [--minimal] [--module module/path] <name>")
+	fmt.Fprintln(os.Stderr, "    monorepo default recommendation: use --in-existing-module")
 	fmt.Fprintln(os.Stderr, "  agentcli add command [--dir path] [--description text] [--preset name] [--list-presets] <name>")
 	fmt.Fprintln(os.Stderr, "  agentcli doctor [--dir path] [--json]")
 	fmt.Fprintln(os.Stderr, "  agentcli loop [global flags] [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [command flags]")

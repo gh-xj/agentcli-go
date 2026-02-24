@@ -48,6 +48,35 @@ func TestScaffoldNewGeneratesGoSum(t *testing.T) {
 	}
 }
 
+func TestScaffoldNewMinimalLayout(t *testing.T) {
+	root := t.TempDir()
+	projectPath, err := ScaffoldNewWithOptions(root, "samplecli", "example.com/samplecli", ScaffoldNewOptions{
+		Minimal: true,
+	})
+	if err != nil {
+		t.Fatalf("ScaffoldNewWithOptions failed: %v", err)
+	}
+
+	required := []string{
+		"go.mod",
+		"go.sum",
+		"main.go",
+		"cmd/root.go",
+		"README.md",
+	}
+	for _, rel := range required {
+		if !FileExists(filepath.Join(projectPath, rel)) {
+			t.Fatalf("expected generated file in minimal mode: %s", rel)
+		}
+	}
+	if FileExists(filepath.Join(projectPath, "internal", "app", "bootstrap.go")) {
+		t.Fatalf("did not expect internal app scaffolding in minimal mode")
+	}
+	if FileExists(filepath.Join(projectPath, "Taskfile.yml")) {
+		t.Fatalf("did not expect Taskfile in minimal mode")
+	}
+}
+
 func TestScaffoldNewInExistingModuleSkipsGoModAndUsesParentImportPath(t *testing.T) {
 	moduleRoot := t.TempDir()
 	if err := os.WriteFile(filepath.Join(moduleRoot, "go.mod"), []byte("module example.com/mono\n\ngo 1.25.5\n"), 0o644); err != nil {
@@ -71,6 +100,24 @@ func TestScaffoldNewInExistingModuleSkipsGoModAndUsesParentImportPath(t *testing
 	}
 	if !strings.Contains(string(mainBody), `"example.com/mono/tools/replay-cli/cmd"`) {
 		t.Fatalf("expected parent-module import path in main.go: %s", string(mainBody))
+	}
+}
+
+func TestScaffoldNewMinimalInExistingModuleSkipsNestedGoMod(t *testing.T) {
+	moduleRoot := t.TempDir()
+	if err := os.WriteFile(filepath.Join(moduleRoot, "go.mod"), []byte("module example.com/mono\n\ngo 1.25.5\n"), 0o644); err != nil {
+		t.Fatalf("write module go.mod: %v", err)
+	}
+
+	projectPath, err := ScaffoldNewWithOptions(filepath.Join(moduleRoot, "tools"), "mini", "", ScaffoldNewOptions{
+		InExistingModule: true,
+		Minimal:          true,
+	})
+	if err != nil {
+		t.Fatalf("ScaffoldNewWithOptions failed: %v", err)
+	}
+	if FileExists(filepath.Join(projectPath, "go.mod")) || FileExists(filepath.Join(projectPath, "go.sum")) {
+		t.Fatalf("expected no nested go.mod/go.sum in existing module minimal mode")
 	}
 }
 
@@ -309,7 +356,7 @@ func TestScaffoldAddCommandRejectsUnknownPreset(t *testing.T) {
 
 func TestCommandPresetNamesReturnsSortedNames(t *testing.T) {
 	got := CommandPresetNames()
-	want := []string{"deploy-helper", "file-sync", "http-client", "task-replay-emit-wrapper"}
+	want := []string{"deploy-helper", "file-sync", "http-client", "task-replay-emit-wrapper", "task-replay-orchestrator"}
 	if len(got) != len(want) {
 		t.Fatalf("unexpected length: got %d want %d", len(got), len(want))
 	}
@@ -339,5 +386,28 @@ func TestScaffoldAddCommandTaskReplayEmitWrapperPreset(t *testing.T) {
 	}
 	if !strings.Contains(string(cmdBody), "--repo") || !strings.Contains(string(cmdBody), "--env") {
 		t.Fatalf("expected replay wrapper argument hints in command body: %s", string(cmdBody))
+	}
+}
+
+func TestScaffoldAddCommandTaskReplayOrchestratorPreset(t *testing.T) {
+	root := t.TempDir()
+	projectPath, err := ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	if err != nil {
+		t.Fatalf("ScaffoldNew failed: %v", err)
+	}
+	if err := ScaffoldAddCommand(projectPath, "replay-orchestrate", "", "task-replay-orchestrator"); err != nil {
+		t.Fatalf("ScaffoldAddCommand failed: %v", err)
+	}
+
+	cmdBody, err := os.ReadFile(filepath.Join(projectPath, "cmd", "replay-orchestrate.go"))
+	if err != nil {
+		t.Fatalf("read command file: %v", err)
+	}
+	content := string(cmdBody)
+	if !strings.Contains(content, "task-replay-orchestrator") {
+		t.Fatalf("expected orchestrator preset marker in command body: %s", content)
+	}
+	if !strings.Contains(content, "--timeout") || !strings.Contains(content, "--timeout-hook") {
+		t.Fatalf("expected timeout hooks in command body: %s", content)
 	}
 }

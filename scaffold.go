@@ -21,6 +21,7 @@ var commandPresets = map[string]string{
 	"http-client":              "send HTTP requests to a target endpoint",
 	"deploy-helper":            "run deterministic deploy workflow checks",
 	"task-replay-emit-wrapper": "run task replay emit wrapper in external repo with env injection",
+	"task-replay-orchestrator": "orchestrate external repo task runs with env injection and timeout hooks",
 }
 
 type templateData struct {
@@ -47,6 +48,7 @@ type DoctorReport struct {
 
 type ScaffoldNewOptions struct {
 	InExistingModule bool
+	Minimal          bool
 }
 
 func (r DoctorReport) JSON() (string, error) {
@@ -102,20 +104,24 @@ func ScaffoldNewWithOptions(baseDir, name, module string, opts ScaffoldNewOption
 	}
 
 	files := map[string]string{
-		"main.go":                           mainTpl,
-		"cmd/root.go":                       rootCmdTpl,
-		"internal/app/bootstrap.go":         appBootstrapTpl,
-		"internal/app/lifecycle.go":         appLifecycleTpl,
-		"internal/app/errors.go":            appErrorsTpl,
-		"internal/config/schema.go":         configSchemaTpl,
-		"internal/config/load.go":           configLoadTpl,
-		"internal/io/output.go":             outputTpl,
-		"internal/tools/smokecheck/main.go": smokeCheckTpl,
-		"pkg/version/version.go":            versionTpl,
-		"test/e2e/cli_test.go":              e2eTestTpl,
-		"test/smoke/version.schema.json":    smokeSchemaTpl,
-		"Taskfile.yml":                      taskfileTpl,
-		"README.md":                         readmeTpl,
+		"main.go":     mainTpl,
+		"cmd/root.go": rootCmdTpl,
+	}
+	if opts.Minimal {
+		files["README.md"] = minimalReadmeTpl
+	} else {
+		files["internal/app/bootstrap.go"] = appBootstrapTpl
+		files["internal/app/lifecycle.go"] = appLifecycleTpl
+		files["internal/app/errors.go"] = appErrorsTpl
+		files["internal/config/schema.go"] = configSchemaTpl
+		files["internal/config/load.go"] = configLoadTpl
+		files["internal/io/output.go"] = outputTpl
+		files["internal/tools/smokecheck/main.go"] = smokeCheckTpl
+		files["pkg/version/version.go"] = versionTpl
+		files["test/e2e/cli_test.go"] = e2eTestTpl
+		files["test/smoke/version.schema.json"] = smokeSchemaTpl
+		files["Taskfile.yml"] = taskfileTpl
+		files["README.md"] = readmeTpl
 	}
 	if writeGoMod {
 		files["go.mod"] = goModTpl
@@ -510,9 +516,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	{{- if eq .Preset "task-replay-emit-wrapper" }}
+	{{- if or (eq .Preset "task-replay-emit-wrapper") (eq .Preset "task-replay-orchestrator") }}
+	"context"
+	"errors"
 	"os/exec"
 	"strings"
+	"time"
 	{{- end }}
 
 	"github.com/gh-xj/agentcli-go"
@@ -545,9 +554,11 @@ func {{.Module}}Command() command {
 			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=http-client: request plan ready with %d args\n", len(args))
 			{{- else if eq .Preset "deploy-helper" }}
 			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=deploy-helper: deploy checks passed for %d args\n", len(args))
-			{{- else if eq .Preset "task-replay-emit-wrapper" }}
+			{{- else if or (eq .Preset "task-replay-emit-wrapper") (eq .Preset "task-replay-orchestrator") }}
 			repoRoot := ""
 			taskName := "replay:emit"
+			timeout := 10 * time.Minute
+			timeoutHook := ""
 			envPairs := make(map[string]string)
 			for i := 0; i < len(args); i++ {
 				switch args[i] {
@@ -573,42 +584,68 @@ func {{.Module}}Command() command {
 					}
 					envPairs[parts[0]] = parts[1]
 					i++
+				case "--timeout":
+					if i+1 >= len(args) {
+						return fmt.Errorf("--timeout requires a value")
+					}
+					d, parseErr := time.ParseDuration(args[i+1])
+					if parseErr != nil || d <= 0 {
+						return fmt.Errorf("invalid --timeout value: %s", args[i+1])
+					}
+					timeout = d
+					i++
+				case "--timeout-hook":
+					if i+1 >= len(args) {
+						return fmt.Errorf("--timeout-hook requires a value")
+					}
+					timeoutHook = args[i+1]
+					i++
 				default:
-					return fmt.Errorf("unexpected argument: %s (usage: --repo <path> [--task <name>] [--env KEY=VALUE]...)", args[i])
+					return fmt.Errorf("unexpected argument: %s (usage: --repo <path> [--task <name>] [--env KEY=VALUE]... [--timeout 30s] [--timeout-hook '<cmd>'])", args[i])
 				}
 			}
 			if strings.TrimSpace(repoRoot) == "" {
 				return fmt.Errorf("--repo is required")
 			}
-			cmd := exec.Command("task", "-d", repoRoot, taskName)
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
+			cmd := exec.CommandContext(ctx, "task", "-d", repoRoot, taskName)
 			cmd.Env = os.Environ()
 			for k, v := range envPairs {
 				cmd.Env = append(cmd.Env, k+"="+v)
 			}
 			out, runErr := cmd.CombinedOutput()
-			if jsonOutput {
-				enc := json.NewEncoder(os.Stdout)
-				enc.SetIndent("", "  ")
-				payload := map[string]any{
-					"command":   "{{.Name}}",
-					"preset":    "task-replay-emit-wrapper",
-					"ok":        runErr == nil,
-					"repo_root": repoRoot,
-					"task":      taskName,
-					"env_count": len(envPairs),
-					"output":    strings.TrimSpace(string(out)),
+			timedOut := errors.Is(ctx.Err(), context.DeadlineExceeded)
+			hookOutput := ""
+			if timedOut && strings.TrimSpace(timeoutHook) != "" {
+				hook := exec.Command("sh", "-c", timeoutHook)
+				hook.Dir = repoRoot
+				hook.Env = append(os.Environ(),
+					"AGENTCLI_TIMEOUT_REPO="+repoRoot,
+					"AGENTCLI_TIMEOUT_TASK="+taskName,
+					"AGENTCLI_TIMEOUT="+timeout.String(),
+				)
+				hookOut, hookErr := hook.CombinedOutput()
+				hookOutput = strings.TrimSpace(string(hookOut))
+				if hookErr != nil {
+					return fmt.Errorf("task timed out after %s; timeout hook failed: %w\ntask output:\n%s\nhook output:\n%s", timeout, hookErr, strings.TrimSpace(string(out)), hookOutput)
 				}
-				if runErr != nil {
-					payload["error"] = runErr.Error()
-				}
-				return enc.Encode(payload)
 			}
 			if runErr != nil {
+				if timedOut {
+					if strings.TrimSpace(timeoutHook) != "" {
+						return fmt.Errorf("task timed out after %s (timeout hook executed)\n%s", timeout, strings.TrimSpace(string(out)))
+					}
+					return fmt.Errorf("task timed out after %s\n%s", timeout, strings.TrimSpace(string(out)))
+				}
 				return fmt.Errorf("task wrapper failed: %w\n%s", runErr, strings.TrimSpace(string(out)))
 			}
-			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=task-replay-emit-wrapper: repo=%s task=%s env=%d\n", repoRoot, taskName, len(envPairs))
+			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset={{.Preset}}: repo=%s task=%s env=%d timeout=%s\n", repoRoot, taskName, len(envPairs), timeout)
 			if err == nil && len(out) > 0 {
 				_, err = fmt.Fprint(os.Stdout, string(out))
+			}
+			if err == nil && hookOutput != "" {
+				_, err = fmt.Fprintf(os.Stdout, "\n# timeout-hook\n%s\n", hookOutput)
 			}
 			{{- else }}
 			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} executed with %d args\n", len(args))
@@ -861,4 +898,15 @@ Generated by agentcli scaffold.
 
 - ` + "`task ci`" + `: canonical CI command
 - ` + "`task verify`" + `: local aggregate verification
+`
+
+const minimalReadmeTpl = `# {{.Name}}
+
+Generated by agentcli scaffold (` + "`--minimal`" + ` mode).
+
+This mode intentionally emits only a tiny runnable surface:
+
+- ` + "`main.go`" + `
+- ` + "`cmd/root.go`" + `
+- ` + "`go.mod`" + ` / ` + "`go.sum`" + ` (when not using ` + "`--in-existing-module`" + `)
 `

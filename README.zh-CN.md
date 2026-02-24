@@ -212,6 +212,12 @@ cd tools/replay-cli
 task verify
 ```
 
+最小模式（只生成最小可运行骨架）：
+
+```bash
+agentcli new --minimal --module github.com/me/my-mini my-mini
+```
+
 项目结构示例：
 
 ```
@@ -228,7 +234,20 @@ my-tool/
 └── Taskfile.yml
 ```
 
-可用预设：`file-sync`、`http-client`、`deploy-helper`、`task-replay-emit-wrapper`
+可用预设：`file-sync`、`http-client`、`deploy-helper`、`task-replay-emit-wrapper`、`task-replay-orchestrator`
+
+跨仓库编排推荐使用 `task-replay-orchestrator`：
+
+```bash
+agentcli add command --preset task-replay-orchestrator replay-orchestrate
+go run . replay-orchestrate \
+  --repo ../external-repo \
+  --task replay:emit \
+  --env IOC_ID=123 \
+  --env MODE=baseline \
+  --timeout 90s \
+  --timeout-hook 'echo timeout for $AGENTCLI_TIMEOUT_TASK'
+```
 
 可选能力降级编译（当 loop/harness 相关包临时漂移时）：
 

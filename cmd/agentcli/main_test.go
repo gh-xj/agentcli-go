@@ -165,6 +165,36 @@ func TestRunAddCommandTaskReplayEmitWrapperPreset(t *testing.T) {
 	}
 }
 
+func TestRunAddCommandTaskReplayOrchestratorPreset(t *testing.T) {
+	root := t.TempDir()
+	projectPath, err := agentcli.ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	if err != nil {
+		t.Fatalf("ScaffoldNew failed: %v", err)
+	}
+
+	exitCode := run([]string{
+		"add",
+		"command",
+		"--dir", projectPath,
+		"--preset", "task-replay-orchestrator",
+		"replay-orchestrate",
+	})
+	if exitCode != agentcli.ExitSuccess {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
+	}
+
+	content, err := os.ReadFile(filepath.Join(projectPath, "cmd", "replay-orchestrate.go"))
+	if err != nil {
+		t.Fatalf("read generated command file: %v", err)
+	}
+	if !strings.Contains(string(content), "task-replay-orchestrator") {
+		t.Fatalf("expected preset marker in generated command file: %s", string(content))
+	}
+	if !strings.Contains(string(content), "--timeout") || !strings.Contains(string(content), "--timeout-hook") {
+		t.Fatalf("expected timeout hooks in generated command file: %s", string(content))
+	}
+}
+
 func TestRunNewInExistingModuleMode(t *testing.T) {
 	moduleRoot := t.TempDir()
 	if err := os.WriteFile(filepath.Join(moduleRoot, "go.mod"), []byte("module example.com/mono\n\ngo 1.25.5\n"), 0o644); err != nil {
@@ -196,6 +226,27 @@ func TestRunNewRejectsModuleWithInExistingModuleMode(t *testing.T) {
 	})
 	if exitCode != agentcli.ExitUsage {
 		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitUsage)
+	}
+}
+
+func TestRunNewMinimalMode(t *testing.T) {
+	root := t.TempDir()
+	exitCode := run([]string{
+		"new",
+		"--dir", root,
+		"--minimal",
+		"samplecli",
+	})
+	if exitCode != agentcli.ExitSuccess {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
+	}
+
+	projectPath := filepath.Join(root, "samplecli")
+	if !agentcli.FileExists(filepath.Join(projectPath, "go.mod")) || !agentcli.FileExists(filepath.Join(projectPath, "go.sum")) {
+		t.Fatalf("expected go.mod and go.sum in minimal mode")
+	}
+	if agentcli.FileExists(filepath.Join(projectPath, "internal", "app", "bootstrap.go")) {
+		t.Fatalf("did not expect full scaffold internals in minimal mode")
 	}
 }
 
