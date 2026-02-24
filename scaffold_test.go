@@ -204,7 +204,7 @@ func TestScaffoldNewUsesCobraxRuntime(t *testing.T) {
 		t.Fatalf("read go.mod: %v", err)
 	}
 	text := string(goMod)
-	if !strings.Contains(text, "require github.com/gh-xj/agentcli-go v0.2.1") {
+	if !strings.Contains(text, "require github.com/gh-xj/agentcli-go v0.2.2") {
 		t.Fatalf("missing phase2 requirement in go.mod: %s", text)
 	}
 
