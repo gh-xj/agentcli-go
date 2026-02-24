@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -16,9 +17,10 @@ const rootCommandMarker = "// agentcli:add-command"
 
 var validCommandName = regexp.MustCompile(`^[a-z][a-z0-9-]*$`)
 var commandPresets = map[string]string{
-	"file-sync":     "sync files between source and destination",
-	"http-client":   "send HTTP requests to a target endpoint",
-	"deploy-helper": "run deterministic deploy workflow checks",
+	"file-sync":                "sync files between source and destination",
+	"http-client":              "send HTTP requests to a target endpoint",
+	"deploy-helper":            "run deterministic deploy workflow checks",
+	"task-replay-emit-wrapper": "run task replay emit wrapper in external repo with env injection",
 }
 
 type templateData struct {
@@ -43,6 +45,10 @@ type DoctorReport struct {
 	Findings      []DoctorFinding `json:"findings"`
 }
 
+type ScaffoldNewOptions struct {
+	InExistingModule bool
+}
+
 func (r DoctorReport) JSON() (string, error) {
 	out, err := json.MarshalIndent(r, "", "  ")
 	if err != nil {
@@ -54,28 +60,48 @@ func (r DoctorReport) JSON() (string, error) {
 // ScaffoldNew creates a new CLI project using the golden agentcli layout.
 // This is now cobrax-only by design.
 func ScaffoldNew(baseDir, name, module string) (string, error) {
+	return ScaffoldNewWithOptions(baseDir, name, module, ScaffoldNewOptions{})
+}
+
+// ScaffoldNewWithOptions creates a new CLI project using the golden agentcli
+// layout with optional generation modes.
+func ScaffoldNewWithOptions(baseDir, name, module string, opts ScaffoldNewOptions) (string, error) {
 	if strings.TrimSpace(name) == "" {
 		return "", errors.New("project name is required")
 	}
 	if strings.TrimSpace(baseDir) == "" {
 		baseDir = "."
 	}
-	if strings.TrimSpace(module) == "" {
-		module = name
-	}
+	module = strings.TrimSpace(module)
+	writeGoMod := true
 
 	root := filepath.Join(baseDir, name)
 	if err := ensureEmptyDir(root); err != nil {
 		return "", err
 	}
 
-	d := templateData{
-		Module:           module,
-		Name:             name,
-		GokitReplaceLine: detectLocalGokitReplaceLine(),
+	if opts.InExistingModule {
+		if module != "" {
+			return "", errors.New("--module cannot be used with --in-existing-module")
+		}
+		modulePath, moduleRoot, err := resolveParentModule(root)
+		if err != nil {
+			return "", err
+		}
+		rel, err := filepath.Rel(moduleRoot, root)
+		if err != nil {
+			return "", fmt.Errorf("resolve path under parent module: %w", err)
+		}
+		module = modulePath
+		if rel != "." {
+			module = module + "/" + filepath.ToSlash(rel)
+		}
+		writeGoMod = false
+	} else if module == "" {
+		module = name
 	}
-	for path, body := range map[string]string{
-		"go.mod":                            goModTpl,
+
+	files := map[string]string{
 		"main.go":                           mainTpl,
 		"cmd/root.go":                       rootCmdTpl,
 		"internal/app/bootstrap.go":         appBootstrapTpl,
@@ -90,8 +116,27 @@ func ScaffoldNew(baseDir, name, module string) (string, error) {
 		"test/smoke/version.schema.json":    smokeSchemaTpl,
 		"Taskfile.yml":                      taskfileTpl,
 		"README.md":                         readmeTpl,
-	} {
+	}
+	if writeGoMod {
+		files["go.mod"] = goModTpl
+	}
+	cliName := filepath.Base(strings.TrimSpace(name))
+	if cliName == "" || cliName == "." || cliName == string(filepath.Separator) {
+		return "", errors.New("project name is required")
+	}
+
+	d := templateData{
+		Module:           module,
+		Name:             cliName,
+		GokitReplaceLine: detectLocalGokitReplaceLine(),
+	}
+	for path, body := range files {
 		if err := writeTemplate(filepath.Join(root, path), body, d); err != nil {
+			return "", err
+		}
+	}
+	if writeGoMod {
+		if err := runGoModTidy(root); err != nil {
 			return "", err
 		}
 	}
@@ -181,7 +226,6 @@ func Doctor(rootDir string) DoctorReport {
 
 	required := []string{
 		"main.go",
-		"go.mod",
 		"cmd/root.go",
 		"internal/app/bootstrap.go",
 		"internal/app/lifecycle.go",
@@ -197,6 +241,17 @@ func Doctor(rootDir string) DoctorReport {
 	}
 
 	report := DoctorReport{SchemaVersion: "v1", OK: true, Findings: make([]DoctorFinding, 0)}
+
+	if FileExists(filepath.Join(rootDir, "go.mod")) {
+		required = append(required, "go.mod")
+	} else if _, _, err := resolveParentModule(rootDir); err != nil {
+		report.OK = false
+		report.Findings = append(report.Findings, DoctorFinding{
+			Code:    "missing_file",
+			Path:    "go.mod",
+			Message: "required file is missing and no parent module was found",
+		})
+	}
 
 	for _, p := range required {
 		abs := filepath.Join(rootDir, p)
@@ -249,6 +304,54 @@ func ensureEmptyDir(root string) error {
 		return nil
 	}
 	return os.MkdirAll(root, 0755)
+}
+
+func runGoModTidy(root string) error {
+	cmd := exec.Command("go", "mod", "tidy")
+	cmd.Dir = root
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("run go mod tidy: %w\n%s", err, strings.TrimSpace(string(out)))
+	}
+	return nil
+}
+
+func resolveParentModule(targetRoot string) (modulePath, moduleRoot string, err error) {
+	dir := filepath.Clean(targetRoot)
+	for {
+		modFile := filepath.Join(dir, "go.mod")
+		raw, readErr := os.ReadFile(modFile)
+		if readErr == nil {
+			module := parseModulePath(string(raw))
+			if module == "" {
+				return "", "", fmt.Errorf("invalid go.mod in parent module root: %s", modFile)
+			}
+			return module, dir, nil
+		}
+		if !errors.Is(readErr, os.ErrNotExist) {
+			return "", "", fmt.Errorf("read parent go.mod: %w", readErr)
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
+	return "", "", fmt.Errorf("parent go.mod not found for --in-existing-module target: %s", targetRoot)
+}
+
+func parseModulePath(goMod string) string {
+	lines := strings.Split(goMod, "\n")
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if !strings.HasPrefix(trimmed, "module ") {
+			continue
+		}
+		value := strings.TrimSpace(strings.TrimPrefix(trimmed, "module "))
+		value = strings.Trim(value, `"`)
+		return value
+	}
+	return ""
 }
 
 func writeTemplate(path, body string, data templateData) error {
@@ -407,6 +510,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	{{- if eq .Preset "task-replay-emit-wrapper" }}
+	"os/exec"
+	"strings"
+	{{- end }}
 
 	"github.com/gh-xj/agentcli-go"
 )
@@ -438,6 +545,71 @@ func {{.Module}}Command() command {
 			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=http-client: request plan ready with %d args\n", len(args))
 			{{- else if eq .Preset "deploy-helper" }}
 			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=deploy-helper: deploy checks passed for %d args\n", len(args))
+			{{- else if eq .Preset "task-replay-emit-wrapper" }}
+			repoRoot := ""
+			taskName := "replay:emit"
+			envPairs := make(map[string]string)
+			for i := 0; i < len(args); i++ {
+				switch args[i] {
+				case "--repo":
+					if i+1 >= len(args) {
+						return fmt.Errorf("--repo requires a value")
+					}
+					repoRoot = args[i+1]
+					i++
+				case "--task":
+					if i+1 >= len(args) {
+						return fmt.Errorf("--task requires a value")
+					}
+					taskName = args[i+1]
+					i++
+				case "--env":
+					if i+1 >= len(args) {
+						return fmt.Errorf("--env requires KEY=VALUE")
+					}
+					parts := strings.SplitN(args[i+1], "=", 2)
+					if len(parts) != 2 || strings.TrimSpace(parts[0]) == "" {
+						return fmt.Errorf("--env requires KEY=VALUE")
+					}
+					envPairs[parts[0]] = parts[1]
+					i++
+				default:
+					return fmt.Errorf("unexpected argument: %s (usage: --repo <path> [--task <name>] [--env KEY=VALUE]...)", args[i])
+				}
+			}
+			if strings.TrimSpace(repoRoot) == "" {
+				return fmt.Errorf("--repo is required")
+			}
+			cmd := exec.Command("task", "-d", repoRoot, taskName)
+			cmd.Env = os.Environ()
+			for k, v := range envPairs {
+				cmd.Env = append(cmd.Env, k+"="+v)
+			}
+			out, runErr := cmd.CombinedOutput()
+			if jsonOutput {
+				enc := json.NewEncoder(os.Stdout)
+				enc.SetIndent("", "  ")
+				payload := map[string]any{
+					"command":   "{{.Name}}",
+					"preset":    "task-replay-emit-wrapper",
+					"ok":        runErr == nil,
+					"repo_root": repoRoot,
+					"task":      taskName,
+					"env_count": len(envPairs),
+					"output":    strings.TrimSpace(string(out)),
+				}
+				if runErr != nil {
+					payload["error"] = runErr.Error()
+				}
+				return enc.Encode(payload)
+			}
+			if runErr != nil {
+				return fmt.Errorf("task wrapper failed: %w\n%s", runErr, strings.TrimSpace(string(out)))
+			}
+			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=task-replay-emit-wrapper: repo=%s task=%s env=%d\n", repoRoot, taskName, len(envPairs))
+			if err == nil && len(out) > 0 {
+				_, err = fmt.Fprint(os.Stdout, string(out))
+			}
 			{{- else }}
 			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} executed with %d args\n", len(args))
 			{{- end }}

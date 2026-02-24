@@ -37,6 +37,56 @@ func TestScaffoldNewCreatesGoldenLayout(t *testing.T) {
 	}
 }
 
+func TestScaffoldNewGeneratesGoSum(t *testing.T) {
+	root := t.TempDir()
+	projectPath, err := ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	if err != nil {
+		t.Fatalf("ScaffoldNew failed: %v", err)
+	}
+	if !FileExists(filepath.Join(projectPath, "go.sum")) {
+		t.Fatalf("expected generated file: go.sum")
+	}
+}
+
+func TestScaffoldNewInExistingModuleSkipsGoModAndUsesParentImportPath(t *testing.T) {
+	moduleRoot := t.TempDir()
+	if err := os.WriteFile(filepath.Join(moduleRoot, "go.mod"), []byte("module example.com/mono\n\ngo 1.25.5\n"), 0o644); err != nil {
+		t.Fatalf("write module go.mod: %v", err)
+	}
+
+	baseDir := filepath.Join(moduleRoot, "tools")
+	projectPath, err := ScaffoldNewWithOptions(baseDir, "replay-cli", "", ScaffoldNewOptions{
+		InExistingModule: true,
+	})
+	if err != nil {
+		t.Fatalf("ScaffoldNewWithOptions failed: %v", err)
+	}
+	if FileExists(filepath.Join(projectPath, "go.mod")) {
+		t.Fatalf("expected no nested go.mod in existing-module mode")
+	}
+
+	mainBody, err := os.ReadFile(filepath.Join(projectPath, "main.go"))
+	if err != nil {
+		t.Fatalf("read main.go: %v", err)
+	}
+	if !strings.Contains(string(mainBody), `"example.com/mono/tools/replay-cli/cmd"`) {
+		t.Fatalf("expected parent-module import path in main.go: %s", string(mainBody))
+	}
+}
+
+func TestScaffoldNewInExistingModuleRequiresParentModule(t *testing.T) {
+	root := t.TempDir()
+	_, err := ScaffoldNewWithOptions(root, "samplecli", "", ScaffoldNewOptions{
+		InExistingModule: true,
+	})
+	if err == nil {
+		t.Fatal("expected error when parent module cannot be resolved")
+	}
+	if !strings.Contains(err.Error(), "go.mod") {
+		t.Fatalf("expected go.mod hint in error, got: %v", err)
+	}
+}
+
 func TestScaffoldAddCommandWiresRoot(t *testing.T) {
 	root := t.TempDir()
 	projectPath, err := ScaffoldNew(root, "samplecli", "example.com/samplecli")
@@ -80,6 +130,25 @@ func TestDoctorReportsGeneratedProjectAsOK(t *testing.T) {
 	}
 	if report.SchemaVersion != "v1" {
 		t.Fatalf("unexpected schema version: %q", report.SchemaVersion)
+	}
+}
+
+func TestDoctorAcceptsScaffoldInExistingModuleMode(t *testing.T) {
+	moduleRoot := t.TempDir()
+	if err := os.WriteFile(filepath.Join(moduleRoot, "go.mod"), []byte("module example.com/mono\n\ngo 1.25.5\n"), 0o644); err != nil {
+		t.Fatalf("write module go.mod: %v", err)
+	}
+
+	projectPath, err := ScaffoldNewWithOptions(filepath.Join(moduleRoot, "tools"), "samplecli", "", ScaffoldNewOptions{
+		InExistingModule: true,
+	})
+	if err != nil {
+		t.Fatalf("ScaffoldNewWithOptions failed: %v", err)
+	}
+
+	report := Doctor(projectPath)
+	if !report.OK {
+		t.Fatalf("expected doctor OK, findings: %+v", report.Findings)
 	}
 }
 
@@ -240,7 +309,7 @@ func TestScaffoldAddCommandRejectsUnknownPreset(t *testing.T) {
 
 func TestCommandPresetNamesReturnsSortedNames(t *testing.T) {
 	got := CommandPresetNames()
-	want := []string{"deploy-helper", "file-sync", "http-client"}
+	want := []string{"deploy-helper", "file-sync", "http-client", "task-replay-emit-wrapper"}
 	if len(got) != len(want) {
 		t.Fatalf("unexpected length: got %d want %d", len(got), len(want))
 	}
@@ -248,5 +317,27 @@ func TestCommandPresetNamesReturnsSortedNames(t *testing.T) {
 		if got[i] != want[i] {
 			t.Fatalf("unexpected preset at %d: got %q want %q", i, got[i], want[i])
 		}
+	}
+}
+
+func TestScaffoldAddCommandTaskReplayEmitWrapperPreset(t *testing.T) {
+	root := t.TempDir()
+	projectPath, err := ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	if err != nil {
+		t.Fatalf("ScaffoldNew failed: %v", err)
+	}
+	if err := ScaffoldAddCommand(projectPath, "replay-emit", "", "task-replay-emit-wrapper"); err != nil {
+		t.Fatalf("ScaffoldAddCommand failed: %v", err)
+	}
+
+	cmdBody, err := os.ReadFile(filepath.Join(projectPath, "cmd", "replay-emit.go"))
+	if err != nil {
+		t.Fatalf("read command file: %v", err)
+	}
+	if !strings.Contains(string(cmdBody), `Description: "run task replay emit wrapper in external repo with env injection"`) {
+		t.Fatalf("expected preset description in command body: %s", string(cmdBody))
+	}
+	if !strings.Contains(string(cmdBody), "--repo") || !strings.Contains(string(cmdBody), "--env") {
+		t.Fatalf("expected replay wrapper argument hints in command body: %s", string(cmdBody))
 	}
 }

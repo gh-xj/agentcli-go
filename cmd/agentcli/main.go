@@ -42,6 +42,7 @@ func runNew(args []string) int {
 	baseDir := "."
 	module := ""
 	name := ""
+	inExistingModule := false
 
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
@@ -59,6 +60,8 @@ func runNew(args []string) int {
 			}
 			module = args[i+1]
 			i++
+		case "--in-existing-module":
+			inExistingModule = true
 		default:
 			if name == "" {
 				name = args[i]
@@ -70,11 +73,17 @@ func runNew(args []string) int {
 	}
 
 	if name == "" {
-		fmt.Fprintln(os.Stderr, "usage: agentcli new [--dir path] [--module module/path] <name>")
+		fmt.Fprintln(os.Stderr, "usage: agentcli new [--dir path] [--module module/path] [--in-existing-module] <name>")
+		return agentcli.ExitUsage
+	}
+	if inExistingModule && module != "" {
+		fmt.Fprintln(os.Stderr, "--module cannot be used with --in-existing-module")
 		return agentcli.ExitUsage
 	}
 
-	root, err := agentcli.ScaffoldNew(baseDir, name, module)
+	root, err := agentcli.ScaffoldNewWithOptions(baseDir, name, module, agentcli.ScaffoldNewOptions{
+		InExistingModule: inExistingModule,
+	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return agentcli.ExitFailure
@@ -199,9 +208,9 @@ func runDoctor(args []string) int {
 }
 
 func printUsage() {
-	fmt.Fprintln(os.Stderr, "agentcli scaffold CLI")
+	fmt.Fprintln(os.Stderr, "agentcli scaffold CLI (from agentcli-go)")
 	fmt.Fprintln(os.Stderr, "Usage:")
-	fmt.Fprintln(os.Stderr, "  agentcli new [--dir path] [--module module/path] <name>")
+	fmt.Fprintln(os.Stderr, "  agentcli new [--dir path] [--module module/path] [--in-existing-module] <name>")
 	fmt.Fprintln(os.Stderr, "  agentcli add command [--dir path] [--description text] [--preset name] [--list-presets] <name>")
 	fmt.Fprintln(os.Stderr, "  agentcli doctor [--dir path] [--json]")
 	fmt.Fprintln(os.Stderr, "  agentcli loop [global flags] [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [command flags]")

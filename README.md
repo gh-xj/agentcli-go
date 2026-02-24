@@ -34,6 +34,7 @@ agentcli loop doctor --repo-root .            # optional verification trace
 ```
 
 Expected result: a runnable scaffold (`main.go`, `cmd/`, `Taskfile.yml`, `test/`) plus a first quality check in less than 2 minutes.
+`agentcli new` now runs `go mod tidy` automatically for standalone projects, so `go.sum` is generated on scaffold.
 
 ## Why
 
@@ -173,6 +174,8 @@ go get github.com/gh-xj/agentcli-go@v0.2.1
 go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
 ```
 
+Naming note: repository/module name is `agentcli-go`, installed binary name is `agentcli`.
+
 Or with Homebrew:
 
 ```bash
@@ -275,6 +278,15 @@ agentcli doctor --json        # verify compliance
 task verify                   # run full local gate
 ```
 
+For monorepos, generate without nested `go.mod`:
+
+```bash
+# run inside an existing Go module
+agentcli new --dir ./tools --in-existing-module replay-cli
+cd tools/replay-cli
+task verify
+```
+
 Generated layout:
 
 ```
@@ -291,7 +303,22 @@ my-tool/
 └── Taskfile.yml
 ```
 
-Command presets: `file-sync`, `http-client`, `deploy-helper`
+Command presets: `file-sync`, `http-client`, `deploy-helper`, `task-replay-emit-wrapper`
+
+### Cross-repo orchestration pattern
+
+Common pattern: run `task` in an external repo with env injection.
+
+```bash
+agentcli add command --preset task-replay-emit-wrapper replay-emit
+go run . replay-emit --repo ../external-repo --task replay:emit --env IOC_ID=123 --env MODE=baseline
+```
+
+Generated wrapper contract:
+
+- required: `--repo <path>`
+- optional: `--task <name>` (default `replay:emit`)
+- optional repeat: `--env KEY=VALUE`
 
 ---
 

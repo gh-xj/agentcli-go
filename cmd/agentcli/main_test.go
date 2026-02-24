@@ -135,6 +135,70 @@ func TestRunAddCommandUsesPresetSpecificStub(t *testing.T) {
 	}
 }
 
+func TestRunAddCommandTaskReplayEmitWrapperPreset(t *testing.T) {
+	root := t.TempDir()
+	projectPath, err := agentcli.ScaffoldNew(root, "samplecli", "example.com/samplecli")
+	if err != nil {
+		t.Fatalf("ScaffoldNew failed: %v", err)
+	}
+
+	exitCode := run([]string{
+		"add",
+		"command",
+		"--dir", projectPath,
+		"--preset", "task-replay-emit-wrapper",
+		"replay-emit",
+	})
+	if exitCode != agentcli.ExitSuccess {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
+	}
+
+	content, err := os.ReadFile(filepath.Join(projectPath, "cmd", "replay-emit.go"))
+	if err != nil {
+		t.Fatalf("read generated command file: %v", err)
+	}
+	if !strings.Contains(string(content), "task-replay-emit-wrapper") {
+		t.Fatalf("expected preset marker in generated command file: %s", string(content))
+	}
+	if !strings.Contains(string(content), "--repo") || !strings.Contains(string(content), "--task") {
+		t.Fatalf("expected replay wrapper args in generated command file: %s", string(content))
+	}
+}
+
+func TestRunNewInExistingModuleMode(t *testing.T) {
+	moduleRoot := t.TempDir()
+	if err := os.WriteFile(filepath.Join(moduleRoot, "go.mod"), []byte("module example.com/mono\n\ngo 1.25.5\n"), 0o644); err != nil {
+		t.Fatalf("write module go.mod: %v", err)
+	}
+
+	exitCode := run([]string{
+		"new",
+		"--dir", filepath.Join(moduleRoot, "tools"),
+		"--in-existing-module",
+		"samplecli",
+	})
+	if exitCode != agentcli.ExitSuccess {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
+	}
+
+	projectPath := filepath.Join(moduleRoot, "tools", "samplecli")
+	if agentcli.FileExists(filepath.Join(projectPath, "go.mod")) {
+		t.Fatalf("expected no nested go.mod in existing-module mode")
+	}
+}
+
+func TestRunNewRejectsModuleWithInExistingModuleMode(t *testing.T) {
+	exitCode := run([]string{
+		"new",
+		"--in-existing-module",
+		"--module", "example.com/custom",
+		"samplecli",
+	})
+	if exitCode != agentcli.ExitUsage {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitUsage)
+	}
+}
+
 func TestRunLoopUnknownAction(t *testing.T) {
 	exitCode := run([]string{"loop", "unknown"})
 	if exitCode != agentcli.ExitUsage {

@@ -8,6 +8,15 @@ Runnable example CLIs generated with `agentcli`.
 - `http-client-cli/`: API-request style command workflow
 - `deploy-helper-cli/`: preflight/deploy workflow skeleton
 
+## Cross-repo orchestration
+
+For replay-style orchestration across repositories, scaffold a wrapper command preset:
+
+```bash
+agentcli add command --preset task-replay-emit-wrapper replay-emit
+go run . replay-emit --repo ../external-repo --task replay:emit --env IOC_ID=123 --env MODE=baseline
+```
+
 ## Verify
 
 Each example is independently runnable and verifiable:
