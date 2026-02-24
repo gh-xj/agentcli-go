@@ -13,8 +13,8 @@ Runnable example CLIs generated with `agentcli`.
 For replay-style orchestration across repositories, scaffold a wrapper command preset:
 
 ```bash
-agentcli add command --preset task-replay-emit-wrapper replay-emit
-go run . replay-emit --repo ../external-repo --task replay:emit --env IOC_ID=123 --env MODE=baseline
+agentcli add command --preset task-replay-orchestrator replay-orchestrate
+go run . replay-orchestrate --repo ../external-repo --task replay:emit --env IOC_ID=123 --env MODE=baseline --timeout 2m
 ```
 
 ## Verify

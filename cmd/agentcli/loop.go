@@ -14,65 +14,8 @@ import (
 	loopcommands "github.com/gh-xj/agentcli-go/tools/harness/commands"
 )
 
-type loopProfile struct {
-	mode             string
-	roleConfig       string
-	maxIterations    int
-	threshold        float64
-	budget           int
-	verboseArtifacts bool
-}
-
-var loopProfiles = fromLoopProfiles(loopcommands.LoopProfiles)
-
-type loopRuntimeFlags struct {
-	Format      string
-	SummaryPath string
-	NoColor     bool
-	DryRun      bool
-	Explain     bool
-}
-
-type loopRegressionFlags struct {
-	Profile       string
-	BaselinePath  string
-	WriteBaseline bool
-}
-
-type loopFlags struct {
-	RepoRoot      string
-	Threshold     float64
-	MaxIterations int
-	Branch        string
-	APIURL        string
-	Markdown      bool
-}
-
-type loopProfileFlags struct {
-	loopFlags
-	RoleConfig         string
-	VerboseArtifacts   bool
-	NoVerboseArtifacts bool
-}
-
-type loopLabFlags struct {
-	loopFlags
-	Mode               string
-	RoleConfig         string
-	Seed               int64
-	Budget             int
-	RunA               string
-	RunB               string
-	RunID              string
-	Iteration          int
-	Format             string
-	Out                string
-	VerboseArtifacts   bool
-	NoVerboseArtifacts bool
-}
-
 func runLoop(args []string) int {
-	runtime := loopRuntimeFlags{Format: "text"}
+	runtime := loopcommands.LoopRuntimeFlags{Format: "text"}
 	if len(args) == 0 {
 		return emitLoopFailureSummary(
 			"loop",
@@ -86,7 +29,7 @@ func runLoop(args []string) int {
 		)
 	}
 
-	parsedRuntime, remaining, err := parseLoopRuntimeFlags(args)
+	parsedRuntime, remaining, err := loopcommands.ParseLoopRuntimeFlags(args)
 	runtime = parsedRuntime
 	if err != nil {
 		return emitLoopFailureSummary("loop", runtime, err)
@@ -144,7 +87,7 @@ func runLoopWithOptionalAPI(apiURL, action string, cfg harnessloop.Config) (harn
 	return harnessloop.RunLoop(cfg)
 }
 
-func emitLoopFailureSummary(command string, runtime loopRuntimeFlags, err error) int {
+func emitLoopFailureSummary(command string, runtime loopcommands.LoopRuntimeFlags, err error) int {
 	now := time.Now().UTC()
 	summary := harness.CommandSummary{
 		SchemaVersion: harness.SummarySchemaVersion,
@@ -168,138 +111,4 @@ func emitLoopFailureSummary(command string, runtime loopRuntimeFlags, err error)
 	}
 	fmt.Fprint(os.Stdout, rendered)
 	return harness.ExitCodeFor(err)
-}
-
-func getLoopProfiles(repoRoot string) (map[string]loopProfile, error) {
-	profiles, err := loopcommands.GetLoopProfiles(repoRoot)
-	if err != nil {
-		return nil, err
-	}
-	return fromLoopProfiles(profiles), nil
-}
-
-func parseLoopProfilesRepoRoot(args []string) (string, error) {
-	return loopcommands.ParseLoopProfilesRepoRoot(args)
-}
-
-func parseLoopRuntimeFlags(args []string) (loopRuntimeFlags, []string, error) {
-	flags, remaining, err := loopcommands.ParseLoopRuntimeFlags(args)
-	if err != nil {
-		return loopRuntimeFlags{}, nil, err
-	}
-	return loopRuntimeFlags{
-		Format:      flags.Format,
-		SummaryPath: flags.SummaryPath,
-		NoColor:     flags.NoColor,
-		DryRun:      flags.DryRun,
-		Explain:     flags.Explain,
-	}, remaining, nil
-}
-
-func parseLoopFlags(args []string) (loopFlags, error) {
-	flags, err := loopcommands.ParseLoopFlags(args)
-	if err != nil {
-		return loopFlags{}, err
-	}
-	return fromLoopFlags(flags), nil
-}
-
-func parseLoopQualityFlags(profile loopProfile, args []string) (loopProfileFlags, error) {
-	flags, err := loopcommands.ParseLoopQualityFlags(toLoopProfile(profile), args)
-	if err != nil {
-		return loopProfileFlags{}, err
-	}
-	return fromLoopProfileFlags(flags), nil
-}
-
-func parseLoopLabFlags(args []string) (loopLabFlags, error) {
-	flags, err := loopcommands.ParseLoopLabFlags(args)
-	if err != nil {
-		return loopLabFlags{}, err
-	}
-	return fromLoopLabFlags(flags), nil
-}
-
-func parseLoopRegressionFlags(args []string) (loopRegressionFlags, []string, error) {
-	flags, remaining, err := loopcommands.ParseLoopRegressionFlags(args)
-	if err != nil {
-		return loopRegressionFlags{}, nil, err
-	}
-	return loopRegressionFlags{Profile: flags.Profile, BaselinePath: flags.BaselinePath, WriteBaseline: flags.WriteBaseline}, remaining, nil
-}
-
-func resolveLoopRegressionBaselinePath(repoRoot, profileName, baselinePath string) string {
-	return loopcommands.ResolveLoopRegressionBaselinePath(repoRoot, profileName, baselinePath)
-}
-
-func resolveVerboseArtifacts(defaultValue, forceEnable, forceDisable bool) (bool, error) {
-	return loopcommands.ResolveVerboseArtifacts(defaultValue, forceEnable, forceDisable)
-}
-
-func toLoopProfile(p loopProfile) loopcommands.LoopProfile {
-	return loopcommands.LoopProfile{
-		Mode:             p.mode,
-		RoleConfig:       p.roleConfig,
-		MaxIterations:    p.maxIterations,
-		Threshold:        p.threshold,
-		Budget:           p.budget,
-		VerboseArtifacts: p.verboseArtifacts,
-	}
-}
-
-func fromLoopProfile(p loopcommands.LoopProfile) loopProfile {
-	return loopProfile{
-		mode:             p.Mode,
-		roleConfig:       p.RoleConfig,
-		maxIterations:    p.MaxIterations,
-		threshold:        p.Threshold,
-		budget:           p.Budget,
-		verboseArtifacts: p.VerboseArtifacts,
-	}
-}
-
-func fromLoopProfiles(in map[string]loopcommands.LoopProfile) map[string]loopProfile {
-	out := make(map[string]loopProfile, len(in))
-	for name, profile := range in {
-		out[name] = fromLoopProfile(profile)
-	}
-	return out
-}
-
-func fromLoopFlags(in loopcommands.LoopFlags) loopFlags {
-	return loopFlags{
-		RepoRoot:      in.RepoRoot,
-		Threshold:     in.Threshold,
-		MaxIterations: in.MaxIterations,
-		Branch:        in.Branch,
-		APIURL:        in.APIURL,
-		Markdown:      in.Markdown,
-	}
-}
-
-func fromLoopProfileFlags(in loopcommands.LoopProfileFlags) loopProfileFlags {
-	return loopProfileFlags{
-		loopFlags:          fromLoopFlags(in.LoopFlags),
-		RoleConfig:         in.RoleConfig,
-		VerboseArtifacts:   in.VerboseArtifacts,
-		NoVerboseArtifacts: in.NoVerboseArtifacts,
-	}
-}
-
-func fromLoopLabFlags(in loopcommands.LoopLabFlags) loopLabFlags {
-	return loopLabFlags{
-		loopFlags:          fromLoopFlags(in.LoopFlags),
-		Mode:               in.Mode,
-		RoleConfig:         in.RoleConfig,
-		Seed:               in.Seed,
-		Budget:             in.Budget,
-		RunA:               in.RunA,
-		RunB:               in.RunB,
-		RunID:              in.RunID,
-		Iteration:          in.Iteration,
-		Format:             in.Format,
-		Out:                in.Out,
-		VerboseArtifacts:   in.VerboseArtifacts,
-		NoVerboseArtifacts: in.NoVerboseArtifacts,
-	}
 }

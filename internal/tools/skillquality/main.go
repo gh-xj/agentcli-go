@@ -147,7 +147,6 @@ func ensureFrontmatter(text, path string, findings *[]judgerFinding) {
 			Source:   path,
 		})
 	}
-	return
 }
 
 func checkOpenAIPrompt(path string, findings *[]judgerFinding) error {

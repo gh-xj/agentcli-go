@@ -1,5 +1,7 @@
 package agentcli
 
+import "context"
+
 // Hook allows commands to run standardized pre/post execution steps.
 type Hook interface {
 	Preflight(*AppContext) error
@@ -9,7 +11,7 @@ type Hook interface {
 // RunLifecycle executes preflight, run, and postflight in order.
 func RunLifecycle(app *AppContext, hook Hook, run func(*AppContext) error) error {
 	if app == nil {
-		app = NewAppContext(nil)
+		app = NewAppContext(context.TODO())
 	}
 	if hook != nil {
 		if err := hook.Preflight(app); err != nil {

@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.4] - 2026-02-24
+
+### Added
+- `agentcli new --minimal` scaffold mode for low-cognitive-load bootstrapping
+- `task-replay-orchestrator` preset with `--timeout` and `--timeout-hook`
+- release gate hardening (`task release:gate`) including `go run ./cmd/agentcli --help`
+- core-only compile fallback (`-tags agentcli_core`) so core CLI builds even if optional loop/harness packages drift
+
+### Changed
+- loop CLI now calls `tools/harness/commands` directly (removed legacy adapter wrappers in `cmd/agentcli/loop.go`)
+- strict static analysis cleanup (`RunLifecycle` context handling, loop profile conversion, skillquality return simplification)
+- README/README.zh-CN examples and install targets now reference `v0.2.4`
+
+### Removed
+- deprecated `task-replay-emit-wrapper` command preset (consolidated on `task-replay-orchestrator`)
+
 ## [0.2.3] - 2026-02-24
 
 ### Added

@@ -138,14 +138,7 @@ func GetLoopProfiles(repoRoot string) (map[string]LoopProfile, error) {
 		return nil, fmt.Errorf("parse loop profiles: %w", err)
 	}
 	for name, profile := range fileProfiles {
-		profiles[name] = LoopProfile{
-			Mode:             profile.Mode,
-			RoleConfig:       profile.RoleConfig,
-			MaxIterations:    profile.MaxIterations,
-			Threshold:        profile.Threshold,
-			Budget:           profile.Budget,
-			VerboseArtifacts: profile.VerboseArtifacts,
-		}
+		profiles[name] = LoopProfile(profile)
 	}
 	return profiles, nil
 }

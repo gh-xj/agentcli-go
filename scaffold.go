@@ -20,7 +20,6 @@ var commandPresets = map[string]string{
 	"file-sync":                "sync files between source and destination",
 	"http-client":              "send HTTP requests to a target endpoint",
 	"deploy-helper":            "run deterministic deploy workflow checks",
-	"task-replay-emit-wrapper": "run task replay emit wrapper in external repo with env injection",
 	"task-replay-orchestrator": "orchestrate external repo task runs with env injection and timeout hooks",
 }
 
@@ -516,7 +515,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	{{- if or (eq .Preset "task-replay-emit-wrapper") (eq .Preset "task-replay-orchestrator") }}
+	{{- if eq .Preset "task-replay-orchestrator" }}
 	"context"
 	"errors"
 	"os/exec"
@@ -554,7 +553,7 @@ func {{.Module}}Command() command {
 			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=http-client: request plan ready with %d args\n", len(args))
 			{{- else if eq .Preset "deploy-helper" }}
 			_, err := fmt.Fprintf(os.Stdout, "{{.Name}} preset=deploy-helper: deploy checks passed for %d args\n", len(args))
-			{{- else if or (eq .Preset "task-replay-emit-wrapper") (eq .Preset "task-replay-orchestrator") }}
+			{{- else if eq .Preset "task-replay-orchestrator" }}
 			repoRoot := ""
 			taskName := "replay:emit"
 			timeout := 10 * time.Minute

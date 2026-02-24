@@ -356,7 +356,7 @@ func TestScaffoldAddCommandRejectsUnknownPreset(t *testing.T) {
 
 func TestCommandPresetNamesReturnsSortedNames(t *testing.T) {
 	got := CommandPresetNames()
-	want := []string{"deploy-helper", "file-sync", "http-client", "task-replay-emit-wrapper", "task-replay-orchestrator"}
+	want := []string{"deploy-helper", "file-sync", "http-client", "task-replay-orchestrator"}
 	if len(got) != len(want) {
 		t.Fatalf("unexpected length: got %d want %d", len(got), len(want))
 	}
@@ -364,28 +364,6 @@ func TestCommandPresetNamesReturnsSortedNames(t *testing.T) {
 		if got[i] != want[i] {
 			t.Fatalf("unexpected preset at %d: got %q want %q", i, got[i], want[i])
 		}
-	}
-}
-
-func TestScaffoldAddCommandTaskReplayEmitWrapperPreset(t *testing.T) {
-	root := t.TempDir()
-	projectPath, err := ScaffoldNew(root, "samplecli", "example.com/samplecli")
-	if err != nil {
-		t.Fatalf("ScaffoldNew failed: %v", err)
-	}
-	if err := ScaffoldAddCommand(projectPath, "replay-emit", "", "task-replay-emit-wrapper"); err != nil {
-		t.Fatalf("ScaffoldAddCommand failed: %v", err)
-	}
-
-	cmdBody, err := os.ReadFile(filepath.Join(projectPath, "cmd", "replay-emit.go"))
-	if err != nil {
-		t.Fatalf("read command file: %v", err)
-	}
-	if !strings.Contains(string(cmdBody), `Description: "run task replay emit wrapper in external repo with env injection"`) {
-		t.Fatalf("expected preset description in command body: %s", string(cmdBody))
-	}
-	if !strings.Contains(string(cmdBody), "--repo") || !strings.Contains(string(cmdBody), "--env") {
-		t.Fatalf("expected replay wrapper argument hints in command body: %s", string(cmdBody))
 	}
 }
 

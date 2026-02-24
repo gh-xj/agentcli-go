@@ -9,6 +9,7 @@ import (
 
 	agentcli "github.com/gh-xj/agentcli-go"
 	harness "github.com/gh-xj/agentcli-go/tools/harness"
+	loopcommands "github.com/gh-xj/agentcli-go/tools/harness/commands"
 )
 
 func TestRunAddCommandWithDescription(t *testing.T) {
@@ -132,36 +133,6 @@ func TestRunAddCommandUsesPresetSpecificStub(t *testing.T) {
 	}
 	if !strings.Contains(string(content), "preset=http-client: request plan ready") {
 		t.Fatalf("expected preset-specific message in generated command file: %s", string(content))
-	}
-}
-
-func TestRunAddCommandTaskReplayEmitWrapperPreset(t *testing.T) {
-	root := t.TempDir()
-	projectPath, err := agentcli.ScaffoldNew(root, "samplecli", "example.com/samplecli")
-	if err != nil {
-		t.Fatalf("ScaffoldNew failed: %v", err)
-	}
-
-	exitCode := run([]string{
-		"add",
-		"command",
-		"--dir", projectPath,
-		"--preset", "task-replay-emit-wrapper",
-		"replay-emit",
-	})
-	if exitCode != agentcli.ExitSuccess {
-		t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
-	}
-
-	content, err := os.ReadFile(filepath.Join(projectPath, "cmd", "replay-emit.go"))
-	if err != nil {
-		t.Fatalf("read generated command file: %v", err)
-	}
-	if !strings.Contains(string(content), "task-replay-emit-wrapper") {
-		t.Fatalf("expected preset marker in generated command file: %s", string(content))
-	}
-	if !strings.Contains(string(content), "--repo") || !strings.Contains(string(content), "--task") {
-		t.Fatalf("expected replay wrapper args in generated command file: %s", string(content))
 	}
 }
 
@@ -356,7 +327,7 @@ func TestRunLoopDoctor(t *testing.T) {
 }
 
 func TestParseLoopProfilesRepoRoot(t *testing.T) {
-	repoRoot, err := parseLoopProfilesRepoRoot([]string{"--repo-root", "/tmp/project"})
+	repoRoot, err := loopcommands.ParseLoopProfilesRepoRoot([]string{"--repo-root", "/tmp/project"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -366,7 +337,7 @@ func TestParseLoopProfilesRepoRoot(t *testing.T) {
 }
 
 func TestParseLoopProfilesRepoRootMissingValue(t *testing.T) {
-	_, err := parseLoopProfilesRepoRoot([]string{"--repo-root"})
+	_, err := loopcommands.ParseLoopProfilesRepoRoot([]string{"--repo-root"})
 	if err == nil {
 		t.Fatal("expected missing-value error")
 	}
@@ -410,25 +381,25 @@ func TestGetLoopProfilesUsesBuiltinAndFile(t *testing.T) {
 		t.Fatalf("write profile config: %v", err)
 	}
 
-	profiles, err := getLoopProfiles(root)
+	profiles, err := loopcommands.GetLoopProfiles(root)
 	if err != nil {
 		t.Fatalf("load profiles: %v", err)
 	}
 
 	quality := profiles["quality"]
-	if quality.mode != "single" || quality.roleConfig != "configs/custom.roles.json" || quality.maxIterations != 2 || quality.threshold != 9.5 || quality.budget != 2 || quality.verboseArtifacts {
+	if quality.Mode != "single" || quality.RoleConfig != "configs/custom.roles.json" || quality.MaxIterations != 2 || quality.Threshold != 9.5 || quality.Budget != 2 || quality.VerboseArtifacts {
 		t.Fatalf("unexpected overridden quality profile: %+v", quality)
 	}
 
 	quick := profiles["quick"]
-	if quick.mode != "committee" || quick.roleConfig != "configs/quick.roles.json" || quick.maxIterations != 1 || quick.threshold != 7.2 {
+	if quick.Mode != "committee" || quick.RoleConfig != "configs/quick.roles.json" || quick.MaxIterations != 1 || quick.Threshold != 7.2 {
 		t.Fatalf("unexpected quick profile: %+v", quick)
 	}
 }
 
 func TestGetLoopProfilesMissingFile(t *testing.T) {
 	root := t.TempDir()
-	profiles, err := getLoopProfiles(root)
+	profiles, err := loopcommands.GetLoopProfiles(root)
 	if err != nil {
 		t.Fatalf("load builtin profiles: %v", err)
 	}
@@ -438,7 +409,7 @@ func TestGetLoopProfilesMissingFile(t *testing.T) {
 }
 
 func TestParseLoopFlags(t *testing.T) {
-	opts, err := parseLoopFlags([]string{
+	opts, err := loopcommands.ParseLoopFlags([]string{
 		"--repo-root", ".",
 		"--threshold", "8.5",
 		"--max-iterations", "2",
@@ -455,7 +426,7 @@ func TestParseLoopFlags(t *testing.T) {
 }
 
 func TestParseLoopFlagsGlobalFlagPlacementHint(t *testing.T) {
-	_, err := parseLoopFlags([]string{"--format", "json"})
+	_, err := loopcommands.ParseLoopFlags([]string{"--format", "json"})
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -465,7 +436,7 @@ func TestParseLoopFlagsGlobalFlagPlacementHint(t *testing.T) {
 }
 
 func TestParseLoopLabFlags(t *testing.T) {
-	opts, err := parseLoopLabFlags([]string{
+	opts, err := loopcommands.ParseLoopLabFlags([]string{
 		"--repo-root", ".",
 		"--threshold", "8.5",
 		"--max-iterations", "2",
@@ -492,7 +463,7 @@ func TestParseLoopLabFlags(t *testing.T) {
 }
 
 func TestParseLoopRuntimeFlagsLeadingGlobalsOnly(t *testing.T) {
-	flags, remaining, err := parseLoopRuntimeFlags([]string{
+	flags, remaining, err := loopcommands.ParseLoopRuntimeFlags([]string{
 		"--format", "json",
 		"--dry-run",
 		"lab",
@@ -513,7 +484,7 @@ func TestParseLoopRuntimeFlagsLeadingGlobalsOnly(t *testing.T) {
 }
 
 func TestParseLoopRuntimeFlagsStopsAtAction(t *testing.T) {
-	flags, remaining, err := parseLoopRuntimeFlags([]string{
+	flags, remaining, err := loopcommands.ParseLoopRuntimeFlags([]string{
 		"lab",
 		"compare",
 		"--format", "md",
@@ -532,21 +503,21 @@ func TestParseLoopRuntimeFlagsStopsAtAction(t *testing.T) {
 }
 
 func TestParseLoopLabFlagsRejectMarkdown(t *testing.T) {
-	_, err := parseLoopLabFlags([]string{"--md"})
+	_, err := loopcommands.ParseLoopLabFlags([]string{"--md"})
 	if err == nil {
 		t.Fatal("expected error for --md in lab flags")
 	}
 }
 
 func TestParseLoopLabFlagsInvalidMode(t *testing.T) {
-	_, err := parseLoopLabFlags([]string{"--mode", "random"})
+	_, err := loopcommands.ParseLoopLabFlags([]string{"--mode", "random"})
 	if err == nil {
 		t.Fatal("expected error for invalid mode")
 	}
 }
 
 func TestParseLoopQualityFlags(t *testing.T) {
-	opts, err := parseLoopQualityFlags(loopProfiles["quality"], []string{
+	opts, err := loopcommands.ParseLoopQualityFlags(loopcommands.LoopProfiles["quality"], []string{
 		"--repo-root", ".",
 		"--threshold", "8.5",
 		"--max-iterations", "2",
@@ -564,14 +535,14 @@ func TestParseLoopQualityFlags(t *testing.T) {
 }
 
 func TestParseLoopQualityFlagsRejectMarkdown(t *testing.T) {
-	_, err := parseLoopQualityFlags(loopProfiles["quality"], []string{"--md"})
+	_, err := loopcommands.ParseLoopQualityFlags(loopcommands.LoopProfiles["quality"], []string{"--md"})
 	if err == nil {
 		t.Fatal("expected error for --md in quality/profile flags")
 	}
 }
 
 func TestParseLoopQualityFlagsNoVerboseArtifacts(t *testing.T) {
-	opts, err := parseLoopQualityFlags(loopProfiles["quality"], []string{
+	opts, err := loopcommands.ParseLoopQualityFlags(loopcommands.LoopProfiles["quality"], []string{
 		"--no-verbose-artifacts",
 	})
 	if err != nil {
@@ -583,7 +554,7 @@ func TestParseLoopQualityFlagsNoVerboseArtifacts(t *testing.T) {
 }
 
 func TestParseLoopQualityFlagsVerboseConflict(t *testing.T) {
-	_, err := parseLoopQualityFlags(loopProfiles["quality"], []string{
+	_, err := loopcommands.ParseLoopQualityFlags(loopcommands.LoopProfiles["quality"], []string{
 		"--verbose-artifacts",
 		"--no-verbose-artifacts",
 	})
@@ -593,7 +564,7 @@ func TestParseLoopQualityFlagsVerboseConflict(t *testing.T) {
 }
 
 func TestParseLoopLabFlagsNoVerboseArtifacts(t *testing.T) {
-	opts, err := parseLoopLabFlags([]string{
+	opts, err := loopcommands.ParseLoopLabFlags([]string{
 		"--no-verbose-artifacts",
 	})
 	if err != nil {
@@ -605,7 +576,7 @@ func TestParseLoopLabFlagsNoVerboseArtifacts(t *testing.T) {
 }
 
 func TestParseLoopLabFlagsVerboseConflict(t *testing.T) {
-	_, err := parseLoopLabFlags([]string{
+	_, err := loopcommands.ParseLoopLabFlags([]string{
 		"--verbose-artifacts",
 		"--no-verbose-artifacts",
 	})
@@ -615,26 +586,26 @@ func TestParseLoopLabFlagsVerboseConflict(t *testing.T) {
 }
 
 func TestResolveVerboseArtifacts(t *testing.T) {
-	got, err := resolveVerboseArtifacts(true, false, false)
+	got, err := loopcommands.ResolveVerboseArtifacts(true, false, false)
 	if err != nil || !got {
 		t.Fatalf("expected default true, got=%v err=%v", got, err)
 	}
-	got, err = resolveVerboseArtifacts(true, false, true)
+	got, err = loopcommands.ResolveVerboseArtifacts(true, false, true)
 	if err != nil || got {
 		t.Fatalf("expected forced false, got=%v err=%v", got, err)
 	}
-	got, err = resolveVerboseArtifacts(false, true, false)
+	got, err = loopcommands.ResolveVerboseArtifacts(false, true, false)
 	if err != nil || !got {
 		t.Fatalf("expected forced true, got=%v err=%v", got, err)
 	}
-	_, err = resolveVerboseArtifacts(false, true, true)
+	_, err = loopcommands.ResolveVerboseArtifacts(false, true, true)
 	if err == nil {
 		t.Fatal("expected conflict error")
 	}
 }
 
 func TestParseLoopRegressionFlags(t *testing.T) {
-	opts, remaining, err := parseLoopRegressionFlags([]string{
+	opts, remaining, err := loopcommands.ParseLoopRegressionFlags([]string{
 		"--profile", "lean",
 		"--baseline", "testdata/regression/custom.json",
 		"--write-baseline",
@@ -653,27 +624,27 @@ func TestParseLoopRegressionFlags(t *testing.T) {
 }
 
 func TestParseLoopRegressionFlagsMissingValue(t *testing.T) {
-	_, _, err := parseLoopRegressionFlags([]string{"--profile"})
+	_, _, err := loopcommands.ParseLoopRegressionFlags([]string{"--profile"})
 	if err == nil {
 		t.Fatal("expected missing profile value error")
 	}
-	_, _, err = parseLoopRegressionFlags([]string{"--baseline"})
+	_, _, err = loopcommands.ParseLoopRegressionFlags([]string{"--baseline"})
 	if err == nil {
 		t.Fatal("expected missing baseline value error")
 	}
 }
 
 func TestResolveLoopRegressionBaselinePath(t *testing.T) {
-	got := resolveLoopRegressionBaselinePath("/tmp/repo", "quality", "")
+	got := loopcommands.ResolveLoopRegressionBaselinePath("/tmp/repo", "quality", "")
 	want := filepath.Join("/tmp/repo", "testdata", "regression", "loop-quality.behavior-baseline.json")
 	if got != want {
 		t.Fatalf("unexpected default baseline path: got %s want %s", got, want)
 	}
-	custom := resolveLoopRegressionBaselinePath("/tmp/repo", "quality", "artifacts/baseline.json")
+	custom := loopcommands.ResolveLoopRegressionBaselinePath("/tmp/repo", "quality", "artifacts/baseline.json")
 	if custom != filepath.Join("/tmp/repo", "artifacts", "baseline.json") {
 		t.Fatalf("unexpected custom baseline path: %s", custom)
 	}
-	abs := resolveLoopRegressionBaselinePath("/tmp/repo", "quality", "/var/tmp/b.json")
+	abs := loopcommands.ResolveLoopRegressionBaselinePath("/tmp/repo", "quality", "/var/tmp/b.json")
 	if abs != "/var/tmp/b.json" {
 		t.Fatalf("unexpected absolute baseline path: %s", abs)
 	}

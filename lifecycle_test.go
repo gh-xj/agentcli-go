@@ -1,6 +1,7 @@
 package agentcli
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"testing"
@@ -31,7 +32,7 @@ func (h traceHook) Postflight(*AppContext) error {
 func TestRunLifecycleOrder(t *testing.T) {
 	trace := make([]string, 0, 3)
 	h := traceHook{trace: &trace}
-	err := RunLifecycle(NewAppContext(nil), h, func(*AppContext) error {
+	err := RunLifecycle(NewAppContext(context.TODO()), h, func(*AppContext) error {
 		trace = append(trace, "run")
 		return nil
 	})
@@ -48,7 +49,7 @@ func TestRunLifecycleStopsOnPreflightError(t *testing.T) {
 	trace := make([]string, 0, 3)
 	wantErr := errors.New("stop")
 	h := traceHook{trace: &trace, err: wantErr, at: "pre"}
-	err := RunLifecycle(NewAppContext(nil), h, func(*AppContext) error {
+	err := RunLifecycle(NewAppContext(context.TODO()), h, func(*AppContext) error {
 		trace = append(trace, "run")
 		return nil
 	})
