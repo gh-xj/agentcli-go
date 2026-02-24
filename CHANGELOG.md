@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.3] - 2026-02-24
+
+### Added
+- loop behavior regression snapshot engine and baseline support
+- quality profile policy files (`configs/loop-profiles.json`, `configs/skill-quality.roles.json`)
+- skill quality judger tool (`internal/tools/skillquality`)
+- project-level skills: `agentcli-go` and `loop-governance`
+- Chinese README (`README.zh-CN.md`)
+
+### Changed
+- CI now includes `regression:behavior` gate in `task ci`
+- loop docs/scripts aligned to `quality`, `lean`, and `autofix` flow
+- docs site simplified to a single architecture diagram
+
 ## [0.2.2] - 2026-02-24
 
 ### Added

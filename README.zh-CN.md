@@ -22,7 +22,7 @@
 ## 30 秒示例
 
 ```bash
-go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.2
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.3
 agentcli new --module github.com/me/my-tool my-tool
 cd my-tool
 agentcli doctor
@@ -113,7 +113,7 @@ agentcli-go（library + scaffold CLI）
 1. 安装 CLI：
 
 ```bash
-go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.2
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.3
 ```
 
 2. 生成标准项目：
@@ -160,13 +160,13 @@ https://github.com/gh-xj/agentcli-go
 ### 库方式（导入到你的项目）
 
 ```bash
-go get github.com/gh-xj/agentcli-go@v0.2.2
+go get github.com/gh-xj/agentcli-go@v0.2.3
 ```
 
 ### 脚手架 CLI（可选）
 
 ```bash
-go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.2
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.3
 ```
 
 或使用 Homebrew：
@@ -178,7 +178,7 @@ brew install agentcli
 
 或下载预编译二进制（macOS/Linux amd64+arm64）：
 
-- https://github.com/gh-xj/agentcli-go/releases/tag/v0.2.2
+- https://github.com/gh-xj/agentcli-go/releases/tag/v0.2.3
 
 ## Claude Code Skill
 

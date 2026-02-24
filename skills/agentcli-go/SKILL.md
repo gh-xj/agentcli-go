@@ -20,7 +20,7 @@ version: 1.0
 
 ## Install quick check
 
-- `go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.2`
+- `go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.3`
 - `which agentcli`
 - `agentcli --help`
 
