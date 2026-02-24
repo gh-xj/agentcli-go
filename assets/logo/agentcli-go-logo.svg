@@ -1,4 +1,4 @@
-<svg width="1200" height="300" viewBox="0 0 1200 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AgentCLI -GO logo">
+<svg width="1200" height="300" viewBox="0 0 1200 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AgentCLI - GO logo">
   <defs>
     <linearGradient id="logoBg" x1="24" y1="24" x2="276" y2="276" gradientUnits="userSpaceOnUse">
       <stop stop-color="#0F172A"/>
@@ -16,6 +16,6 @@
   <path d="M177 186H202" stroke="#00ADD8" stroke-width="12" stroke-linecap="round"/>
 
   <text x="324" y="148" font-family="SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace" font-size="92" font-weight="700" fill="#0F172A">AgentCLI</text>
-  <text x="853" y="148" font-family="SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace" font-size="92" font-weight="700" fill="#00ADD8">-GO</text>
+  <text x="853" y="148" font-family="SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace" font-size="92" font-weight="700" fill="#00ADD8">- GO</text>
   <text x="326" y="206" font-family="SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace" font-size="34" fill="#334155">Deterministic CLI contracts for human + AI teams</text>
 </svg>

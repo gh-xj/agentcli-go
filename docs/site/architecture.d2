@@ -1,0 +1,55 @@
+agent: AI Agent {
+  shape: person
+  style.fill: "#FFE0B2"
+  style.font-size: 13
+}
+
+cli: agentcli {
+  grid-columns: 1
+  style.fill: "#C8E6C9"
+  style.stroke: "#388E3C"
+  style.font-size: 14
+  style.border-radius: 12
+
+  new: new {style.font-size: 12; style.border-radius: 8}
+  add: add command {style.font-size: 12; style.border-radius: 8}
+  doctor: doctor {style.font-size: 12; style.border-radius: 8}
+  loop: loop {style.font-size: 12; style.border-radius: 8}
+}
+
+project: Golden Project {
+  grid-columns: 1
+  style.fill: "#BBDEFB"
+  style.stroke: "#1565C0"
+  style.font-size: 14
+  style.border-radius: 12
+
+  entry: cobrax runtime {style.font-size: 12; style.border-radius: 8}
+  lifecycle: Preflight · Run · Postflight {style.font-size: 12; style.border-radius: 8}
+  config: Defaults < File < Env < Flags {style.font-size: 12; style.border-radius: 8}
+  tasks: Taskfile.yml {style.font-size: 12; style.border-radius: 8}
+}
+
+contract: DoctorReport {
+  shape: cylinder
+  style.fill: "#FFCC80"
+  style.stroke: "#E65100"
+  style.font-size: 14
+}
+
+harness: Harness Loop {
+  grid-columns: 1
+  style.fill: "#E1BEE7"
+  style.stroke: "#6A1B9A"
+  style.font-size: 14
+  style.border-radius: 12
+
+  judge: Judge (score 0–100) {style.font-size: 12; style.border-radius: 8}
+  fixer: Fixer (auto-repair) {style.font-size: 12; style.border-radius: 8}
+}
+
+agent -> cli: install
+cli -> project: scaffold · extend
+project -> contract: doctor
+cli.loop -> harness: iterate
+harness <-> contract: score · fix
