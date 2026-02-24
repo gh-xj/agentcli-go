@@ -7,7 +7,7 @@ This file is the quick entrypoint for coding agents working in this repository.
 - Use `task ci` as the canonical CI contract.
 - Use `task verify` for local aggregate verification.
 - Preserve the loop command surface:
-  - `agentcli loop [run|judge|autofix|doctor|quality|profiles]`
+  - `agentcli loop [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [--format text|json|ndjson] [--summary path] [--no-color] [--dry-run] [--explain] [command flags]`
   - `agentcli loop lab [compare|replay|run|judge|autofix]`
 - Do not use `agentcli loop all` (not supported).
 
@@ -80,8 +80,9 @@ Run in this order:
 ```bash
 task ci
 agentcli loop doctor --repo-root .
+agentcli loop lean --repo-root .
 agentcli loop quality --repo-root .
-agentcli loop judge --repo-root . --threshold 9.0 --max-iterations 1
+agentcli loop regression --repo-root .
 ```
 
 For optional auto-fix iteration:

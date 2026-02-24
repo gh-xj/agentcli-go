@@ -1,19 +1,34 @@
 # Verification Loop Skill
 
-Front page for the local verification-loop skill package.
+Front page for project-local loop verification guidance.
 
 ## Source of truth
 
 - `skills/verification-loop/SKILL.md`
 
-## Command reference (must match CLI help)
+CLI surface:
 
-- `agentcli loop [run|judge|autofix|doctor]`
-- `agentcli loop lab [compare|replay|run|judge|autofix]`
+- `agentcli loop [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [--format text|json|ndjson] [--summary path] [--no-color] [--dry-run] [--explain] [command flags]`
+- `agentcli loop lab [compare|replay|run|judge|autofix] [advanced flags]`
 
-## Resources
+## What this includes
 
-- `skills/verification-loop/examples/lean.md`
-- `skills/verification-loop/examples/lab.md`
-- `skills/verification-loop/examples/ci.md`
-- `skills/verification-loop/CHECKLIST.md`
+- Baseline quality and doctor checks
+- Profile-aware loop gates
+- Behavior-regression baseline checks
+- Lab workflows for replay and compare diagnostics
+- Case-study links for first-time onboarding
+
+## Quick references
+
+- `../loop-governance/SKILL.md`
+- `../loop-governance/case-study.md`
+- `../agents.md`
+- `../README.md` (user-facing usage context)
+
+## Example pages
+
+- `examples/lean.md`
+- `examples/lab.md`
+- `examples/ci.md`
+- `CHECKLIST.md`
