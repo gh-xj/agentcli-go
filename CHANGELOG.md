@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.5] - 2026-02-24
+
+### Added
+- new `agentcli migrate` command for existing shell-script repos (`scripts/*.sh`) with dual modes:
+  - `--mode safe` (default, parallel workspace)
+  - `--mode in-place`
+- migration analysis/generation pipeline under `internal/migrate`:
+  - script scan (`bash`/`sh`) with risk signal detection
+  - deterministic strategy planner (`auto`, `wrapper`, `manual`)
+  - artifact generator (`docs/migration/{plan,report,compatibility}` + migration skill scaffold)
+- migration contract schemas and fixtures:
+  - `schemas/migrate-plan.schema.json`
+  - `schemas/migrate-report.schema.json`
+  - `testdata/contracts/migrate-*.json`
+
+### Changed
+- root help now includes migration onboarding guidance for AI agents via `agentcli --help`
+- `task schema:check` and `task schema:negative` now validate migration contracts
+- docs and skill guidance updated for script migration onboarding
+
 ## [0.2.4] - 2026-02-24
 
 ### Added

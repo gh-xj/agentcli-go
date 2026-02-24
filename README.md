@@ -26,7 +26,7 @@ Framework modules for building Go CLI projects with an agent-first workflow.
 ## 30-second demo
 
 ```bash
-go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.4
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.5
 agentcli new --module github.com/me/my-tool my-tool
 cd my-tool
 agentcli doctor
@@ -118,7 +118,7 @@ Please follow the sequence in agents.md, including canonical onboarding commands
 1. Install the CLI:
 
 ```bash
-go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.4
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.5
 ```
 
 2. Generate a standard project:
@@ -188,13 +188,13 @@ https://github.com/gh-xj/agentcli-go
 ### Library (import into your project)
 
 ```bash
-go get github.com/gh-xj/agentcli-go@v0.2.4
+go get github.com/gh-xj/agentcli-go@v0.2.5
 ```
 
 ### Scaffold CLI (optional, for generating new projects)
 
 ```bash
-go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.4
+go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.5
 ```
 
 Naming note: repository/module name is `agentcli-go`, installed binary name is `agentcli`.
@@ -208,7 +208,7 @@ brew install agentcli
 
 Or download a prebuilt binary (macOS/Linux amd64+arm64):
 
-- https://github.com/gh-xj/agentcli-go/releases/tag/v0.2.4
+- https://github.com/gh-xj/agentcli-go/releases/tag/v0.2.5
 
 ## Claude Code Skill
 
