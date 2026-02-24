@@ -1,0 +1,11 @@
+{
+  "schema_version": "v1",
+  "required_keys": [
+    "schema_version",
+    "repo_root",
+    "source",
+    "generated_at",
+    "scripts",
+    "summary"
+  ]
+}

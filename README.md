@@ -144,6 +144,29 @@ go run . --help
 
 If this works, your team gets a scaffolded CLI with harness-friendly structure without manual setup.
 
+## Migrate Existing `scripts/*.sh` (10-minute path)
+
+Start from help:
+
+```bash
+agentcli --help
+```
+
+Then run migration in safe mode:
+
+```bash
+agentcli migrate --source ./scripts --mode safe --dry-run
+agentcli migrate --source ./scripts --mode safe --apply
+```
+
+Output artifacts are generated under `agentcli-migrated/docs/migration/` by default:
+
+- `plan.json` (machine-readable migration plan)
+- `report.md` and `report.json` (human + machine report)
+- `compatibility.md` (shell feature compatibility)
+
+KPI fields for onboarding conversion tracking are documented in `docs/migration/README.md`.
+
 If this project saves your agent setup time, give it a star on GitHub to improve discovery for other teams:
 https://github.com/gh-xj/agentcli-go
 

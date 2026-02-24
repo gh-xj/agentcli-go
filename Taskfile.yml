@@ -68,6 +68,8 @@ tasks:
     cmds:
       - go run ./internal/tools/schemacheck --schema schemas/doctor-report.schema.json --input testdata/contracts/doctor-report.ok.json
       - go run ./internal/tools/schemacheck --schema schemas/scaffold-version-output.schema.json --input testdata/contracts/scaffold-version-output.ok.json
+      - go run ./internal/tools/schemacheck --schema schemas/migrate-plan.schema.json --input testdata/contracts/migrate-plan.ok.json
+      - go run ./internal/tools/schemacheck --schema schemas/migrate-report.schema.json --input testdata/contracts/migrate-report.ok.json
 
   schema:negative:
     desc: Ensure invalid contract fixtures fail validation
@@ -76,6 +78,8 @@ tasks:
       - sh -c '! go run ./internal/tools/schemacheck --schema schemas/doctor-report.schema.json --input testdata/contracts/doctor-report.bad-schema-version.json'
       - sh -c '! go run ./internal/tools/schemacheck --schema schemas/scaffold-version-output.schema.json --input testdata/contracts/scaffold-version-output.bad-missing-date.json'
       - sh -c '! go run ./internal/tools/schemacheck --schema schemas/scaffold-version-output.schema.json --input testdata/contracts/scaffold-version-output.bad-schema-version.json'
+      - sh -c '! go run ./internal/tools/schemacheck --schema schemas/migrate-plan.schema.json --input testdata/contracts/migrate-plan.bad-missing-scripts.json'
+      - sh -c '! go run ./internal/tools/schemacheck --schema schemas/migrate-report.schema.json --input testdata/contracts/migrate-report.bad-missing-summary.json'
 
   docs:check:
     desc: Fail when skill docs drift from CLI help signatures

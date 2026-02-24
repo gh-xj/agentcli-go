@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -11,6 +12,145 @@ import (
 	harness "github.com/gh-xj/agentcli-go/tools/harness"
 	loopcommands "github.com/gh-xj/agentcli-go/tools/harness/commands"
 )
+
+func captureOutputs(t *testing.T, fn func()) (string, string) {
+	t.Helper()
+
+	origStdout := os.Stdout
+	origStderr := os.Stderr
+
+	rOut, wOut, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("create stdout pipe: %v", err)
+	}
+	rErr, wErr, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("create stderr pipe: %v", err)
+	}
+
+	os.Stdout = wOut
+	os.Stderr = wErr
+
+	doneOut := make(chan string, 1)
+	doneErr := make(chan string, 1)
+	go func() {
+		var b bytes.Buffer
+		_, _ = b.ReadFrom(rOut)
+		doneOut <- b.String()
+	}()
+	go func() {
+		var b bytes.Buffer
+		_, _ = b.ReadFrom(rErr)
+		doneErr <- b.String()
+	}()
+
+	fn()
+
+	_ = wOut.Close()
+	_ = wErr.Close()
+	os.Stdout = origStdout
+	os.Stderr = origStderr
+
+	return <-doneOut, <-doneErr
+}
+
+func withWorkingDir(t *testing.T, dir string, fn func()) {
+	t.Helper()
+	orig, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("chdir %s: %v", dir, err)
+	}
+	defer func() {
+		if err := os.Chdir(orig); err != nil {
+			t.Fatalf("restore working dir: %v", err)
+		}
+	}()
+	fn()
+}
+
+func TestRunHelpIncludesMigrateEntryAndAgentPrompt(t *testing.T) {
+	_, stderr := captureOutputs(t, func() {
+		exitCode := run([]string{"--help"})
+		if exitCode != agentcli.ExitSuccess {
+			t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
+		}
+	})
+	if !strings.Contains(stderr, "agentcli migrate --source path [--mode safe|in-place] [--dry-run|--apply]") {
+		t.Fatalf("expected migrate help usage in stderr: %s", stderr)
+	}
+	if !strings.Contains(stderr, "agent prompt: run 'agentcli migrate --source ./scripts --mode safe --dry-run' first") {
+		t.Fatalf("expected agent prompt in help text: %s", stderr)
+	}
+}
+
+func TestRunMigrateDryRunPrintsPlanWithoutWriting(t *testing.T) {
+	repoRoot := t.TempDir()
+	scriptsDir := filepath.Join(repoRoot, "scripts")
+	if err := os.MkdirAll(scriptsDir, 0o755); err != nil {
+		t.Fatalf("mkdir scripts: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(scriptsDir, "sync.sh"), []byte("#!/bin/sh\necho ok\n"), 0o755); err != nil {
+		t.Fatalf("write script: %v", err)
+	}
+
+	withWorkingDir(t, repoRoot, func() {
+		stdout, _ := captureOutputs(t, func() {
+			exitCode := run([]string{"migrate", "--source", "scripts", "--mode", "safe", "--dry-run"})
+			if exitCode != agentcli.ExitSuccess {
+				t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
+			}
+		})
+		if !strings.Contains(stdout, "migration plan (dry-run)") {
+			t.Fatalf("expected dry-run summary in stdout: %s", stdout)
+		}
+	})
+
+	if agentcli.FileExists(filepath.Join(repoRoot, "agentcli-migrated")) {
+		t.Fatalf("dry-run should not create output workspace")
+	}
+}
+
+func TestRunMigrateApplyCreatesSafeWorkspace(t *testing.T) {
+	repoRoot := t.TempDir()
+	scriptsDir := filepath.Join(repoRoot, "scripts")
+	if err := os.MkdirAll(scriptsDir, 0o755); err != nil {
+		t.Fatalf("mkdir scripts: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(scriptsDir, "sync.sh"), []byte("#!/bin/sh\necho ok\n"), 0o755); err != nil {
+		t.Fatalf("write script: %v", err)
+	}
+
+	withWorkingDir(t, repoRoot, func() {
+		stdout, _ := captureOutputs(t, func() {
+			exitCode := run([]string{"migrate", "--source", "scripts", "--mode", "safe", "--apply"})
+			if exitCode != agentcli.ExitSuccess {
+				t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
+			}
+		})
+		if !strings.Contains(stdout, "migration generated at:") {
+			t.Fatalf("expected apply output in stdout: %s", stdout)
+		}
+	})
+
+	if !agentcli.FileExists(filepath.Join(repoRoot, "agentcli-migrated", "docs", "migration", "plan.json")) {
+		t.Fatalf("expected migration plan artifact in safe workspace")
+	}
+}
+
+func TestRunMigrateHelp(t *testing.T) {
+	_, stderr := captureOutputs(t, func() {
+		exitCode := run([]string{"migrate", "--help"})
+		if exitCode != agentcli.ExitSuccess {
+			t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
+		}
+	})
+	if !strings.Contains(stderr, "usage: agentcli migrate --source path [--mode safe|in-place] [--dry-run|--apply] [--out path]") {
+		t.Fatalf("expected migrate usage help: %s", stderr)
+	}
+}
 
 func TestRunAddCommandWithDescription(t *testing.T) {
 	root := t.TempDir()

@@ -1,0 +1,26 @@
+{
+  "schema_version": "v1",
+  "repo_root": ".",
+  "source": "scripts",
+  "summary": {
+    "total": 1,
+    "auto": 1,
+    "wrapper": 0,
+    "manual": 0
+  },
+  "scripts": [
+    {
+      "script": {
+        "name": "sync",
+        "path": "scripts/sync.sh",
+        "shell": "sh",
+        "executable": true,
+        "uses_args": true,
+        "uses_env": false,
+        "size_bytes": 24
+      },
+      "strategy": "auto",
+      "score": 0.95
+    }
+  ]
+}

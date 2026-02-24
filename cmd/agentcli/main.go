@@ -24,6 +24,8 @@ func run(args []string) int {
 		return runAdd(args[1:])
 	case "doctor":
 		return runDoctor(args[1:])
+	case "migrate":
+		return runMigrate(args[1:])
 	case "loop":
 		return runLoop(args[1:])
 	case "loop-server":
@@ -218,6 +220,8 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "    monorepo default recommendation: use --in-existing-module")
 	fmt.Fprintln(os.Stderr, "  agentcli add command [--dir path] [--description text] [--preset name] [--list-presets] <name>")
 	fmt.Fprintln(os.Stderr, "  agentcli doctor [--dir path] [--json]")
+	fmt.Fprintln(os.Stderr, "  agentcli migrate --source path [--mode safe|in-place] [--dry-run|--apply] [--out path]")
+	fmt.Fprintln(os.Stderr, "    agent prompt: run 'agentcli migrate --source ./scripts --mode safe --dry-run' first")
 	fmt.Fprintln(os.Stderr, "  agentcli loop [global flags] [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [command flags]")
 	fmt.Fprintln(os.Stderr, "    global flags: [--format text|json|ndjson] [--summary path] [--no-color] [--dry-run] [--explain]")
 	fmt.Fprintln(os.Stderr, "  agentcli loop lab [compare|replay|run|judge|autofix] [advanced flags]")

@@ -139,6 +139,29 @@ go run . --help
 
 若顺利通过，说明已获得一个带 harness 能力的可继续迭代 CLI 骨架。
 
+## 迁移已有 `scripts/*.sh`（10 分钟路径）
+
+先从帮助入口开始：
+
+```bash
+agentcli --help
+```
+
+再执行安全模式迁移：
+
+```bash
+agentcli migrate --source ./scripts --mode safe --dry-run
+agentcli migrate --source ./scripts --mode safe --apply
+```
+
+默认输出在 `agentcli-migrated/docs/migration/`：
+
+- `plan.json`（机器可读迁移计划）
+- `report.md` 与 `report.json`（人读 + 机器读报告）
+- `compatibility.md`（脚本兼容性说明）
+
+用于 onboarding 转化率统计的 KPI 字段见 `docs/migration/README.md`。
+
 如果这个工具减少了你的 Agent 设置成本，欢迎给 GitHub 点星，帮助更多团队发现它：
 https://github.com/gh-xj/agentcli-go
 
