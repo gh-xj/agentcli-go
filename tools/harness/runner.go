@@ -29,7 +29,7 @@ func Run(input CommandInput) (CommandSummary, error) {
 	summary := CommandSummary{
 		SchemaVersion: SummarySchemaVersion,
 		Command:       strings.TrimSpace(input.Name),
-		Status:        string(StatusOK),
+		Status:        StatusOK,
 		StartedAt:     startedAt,
 	}
 
@@ -61,15 +61,19 @@ func Run(input CommandInput) (CommandSummary, error) {
 		appendFailure(&summary, FailureFromError(execErr))
 	}
 	if len(summary.Failures) > 0 {
-		summary.Status = string(StatusFail)
+		summary.Status = StatusFail
 	}
 	finalizeSummary(&summary, startedAt)
 
 	if err := writeSummary(summary, input.SummaryPath); err != nil {
 		writeErr := WrapFailure(CodeFileIO, "write summary", fmt.Sprintf("check summary path %q", input.SummaryPath), false, err)
 		appendFailure(&summary, FailureFromError(writeErr))
-		summary.Status = string(StatusFail)
+		summary.Status = StatusFail
 		finalizeSummary(&summary, startedAt)
+		if execErr != nil {
+			// Preserve the primary execution failure code while surfacing summary-write failure context.
+			return summary, fmt.Errorf("%w; summary write also failed: %v", normalizeExecutionError(execErr), writeErr)
+		}
 		return summary, writeErr
 	}
 

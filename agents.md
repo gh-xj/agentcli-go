@@ -7,7 +7,7 @@ This file is the quick entrypoint for coding agents working in this repository.
 - Use `task ci` as the canonical CI contract.
 - Use `task verify` for local aggregate verification.
 - Preserve the loop command surface:
-  - `agentcli loop [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [--format text|json|ndjson] [--summary path] [--no-color] [--dry-run] [--explain] [command flags]`
+  - `agentcli loop [global flags] [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [command flags]`
   - `agentcli loop lab [compare|replay|run|judge|autofix]`
 - Do not use `agentcli loop all` (not supported).
 

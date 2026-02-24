@@ -138,7 +138,7 @@ func runLoop(args []string) int {
 			runtime,
 			harness.NewFailure(
 				harness.CodeUsage,
-				"usage: agentcli loop [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [--format text|json|ndjson] [--summary path] [--no-color] [--dry-run] [--explain]",
+				"usage: agentcli loop [global flags] [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [command flags]",
 				"",
 				false,
 			),
@@ -156,7 +156,7 @@ func runLoop(args []string) int {
 			runtime,
 			harness.NewFailure(
 				harness.CodeUsage,
-				"usage: agentcli loop [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab]",
+				"usage: agentcli loop [global flags] [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [command flags]",
 				"",
 				false,
 			),
@@ -184,20 +184,18 @@ func runLoop(args []string) int {
 	return harness.ExitCodeFor(execErr)
 }
 
-func executeLoopAction(action string, args []string, _ harness.Context) (harness.CommandOutcome, error) {
+func executeLoopAction(action string, args []string, ctx harness.Context) (harness.CommandOutcome, error) {
 	switch action {
 	case "capabilities":
-		return harness.CommandOutcome{
-			Data: harness.DefaultCapabilities(),
-		}, nil
+		return runLoopCapabilitiesCommand(args)
 	case "doctor":
 		return runLoopDoctorCommand(args)
 	case "profiles":
 		return runLoopProfilesCommand(args)
 	case "quality":
-		return runLoopProfileCommand("quality", args)
+		return runLoopProfileCommand("quality", args, ctx)
 	case "regression":
-		return runLoopRegressionCommand(args)
+		return runLoopRegressionCommand(args, ctx)
 	case "profile":
 		if len(args) == 0 {
 			return harness.CommandOutcome{}, harness.NewFailure(
@@ -207,25 +205,39 @@ func executeLoopAction(action string, args []string, _ harness.Context) (harness
 				false,
 			)
 		}
-		return runLoopProfileCommand(args[0], args[1:])
+		return runLoopProfileCommand(args[0], args[1:], ctx)
 	case "lab":
-		return runLoopLabCommand(args)
+		return runLoopLabCommand(args, ctx)
 	case "run", "judge", "autofix":
-		return runLoopClassicCommand(action, args)
+		return runLoopClassicCommand(action, args, ctx)
 	default:
-		if out, err, ok := runLoopNamedProfileCommand(action, args); ok {
+		if out, err, ok := runLoopNamedProfileCommand(action, args, ctx); ok {
 			return out, err
 		}
 		return harness.CommandOutcome{}, harness.NewFailure(
 			harness.CodeUsage,
 			fmt.Sprintf("unknown loop action: %s", action),
-			"use 'agentcli loop capabilities --format json' to discover commands",
+			"use 'agentcli loop --format json capabilities' to discover commands",
 			false,
 		)
 	}
 }
 
-func runLoopNamedProfileCommand(name string, args []string) (harness.CommandOutcome, error, bool) {
+func runLoopCapabilitiesCommand(args []string) (harness.CommandOutcome, error) {
+	if len(args) > 0 {
+		return harness.CommandOutcome{}, harness.NewFailure(
+			harness.CodeUsage,
+			fmt.Sprintf("unexpected argument: %s", args[0]),
+			"use global flags before action, for example: agentcli loop --format json capabilities",
+			false,
+		)
+	}
+	return harness.CommandOutcome{
+		Data: harness.DefaultCapabilities(),
+	}, nil
+}
+
+func runLoopNamedProfileCommand(name string, args []string, ctx harness.Context) (harness.CommandOutcome, error, bool) {
 	repoRoot, err := parseLoopProfilesRepoRoot(args)
 	if err != nil {
 		return harness.CommandOutcome{}, harness.WrapFailure(harness.CodeUsage, err.Error(), "", false, err), true
@@ -237,7 +249,7 @@ func runLoopNamedProfileCommand(name string, args []string) (harness.CommandOutc
 	if _, ok := profiles[name]; !ok {
 		return harness.CommandOutcome{}, nil, false
 	}
-	out, runErr := runLoopProfileCommand(name, args)
+	out, runErr := runLoopProfileCommand(name, args, ctx)
 	return out, runErr, true
 }
 
@@ -298,7 +310,7 @@ func runLoopProfilesCommand(args []string) (harness.CommandOutcome, error) {
 		Checks: []harness.CheckResult{
 			{
 				Name:    "profiles_loaded",
-				Status:  "ok",
+				Status:  harness.StatusOK,
 				Details: fmt.Sprintf("%d profile(s)", len(names)),
 			},
 		},
@@ -309,7 +321,7 @@ func runLoopProfilesCommand(args []string) (harness.CommandOutcome, error) {
 	}, nil
 }
 
-func runLoopClassicCommand(action string, args []string) (harness.CommandOutcome, error) {
+func runLoopClassicCommand(action string, args []string, ctx harness.Context) (harness.CommandOutcome, error) {
 	if action == "judge" {
 		action = "run"
 	}
@@ -333,6 +345,11 @@ func runLoopClassicCommand(action string, args []string) (harness.CommandOutcome
 		cfg.AutoFix = true
 		cfg.AutoCommit = true
 	}
+	if ctx.DryRun {
+		return dryRunOutcome("loop "+action, map[string]any{
+			"config": cfg,
+		}), nil
+	}
 
 	result, err := runLoopWithOptionalAPI(opts.APIURL, action, cfg)
 	if err != nil {
@@ -341,7 +358,7 @@ func runLoopClassicCommand(action string, args []string) (harness.CommandOutcome
 	return outcomeFromRunResult(result), nil
 }
 
-func runLoopProfileCommand(name string, args []string) (harness.CommandOutcome, error) {
+func runLoopProfileCommand(name string, args []string, ctx harness.Context) (harness.CommandOutcome, error) {
 	repoRoot, err := parseLoopProfilesRepoRoot(args)
 	if err != nil {
 		return harness.CommandOutcome{}, harness.WrapFailure(harness.CodeUsage, err.Error(), "", false, err)
@@ -390,6 +407,12 @@ func runLoopProfileCommand(name string, args []string) (harness.CommandOutcome, 
 		Budget:           profile.budget,
 		VerboseArtifacts: verboseArtifacts,
 	}
+	if ctx.DryRun {
+		return dryRunOutcome("loop profile "+name, map[string]any{
+			"profile": name,
+			"config":  cfg,
+		}), nil
+	}
 
 	result, err := runLoopWithOptionalAPI(opts.APIURL, "judge", cfg)
 	if err != nil {
@@ -399,13 +422,13 @@ func runLoopProfileCommand(name string, args []string) (harness.CommandOutcome, 
 	outcome := outcomeFromRunResult(result)
 	outcome.Checks = append([]harness.CheckResult{{
 		Name:    "profile",
-		Status:  "ok",
+		Status:  harness.StatusOK,
 		Details: name,
 	}}, outcome.Checks...)
 	return outcome, nil
 }
 
-func runLoopRegressionCommand(args []string) (harness.CommandOutcome, error) {
+func runLoopRegressionCommand(args []string, ctx harness.Context) (harness.CommandOutcome, error) {
 	regressionFlags, profileArgs, err := parseLoopRegressionFlags(args)
 	if err != nil {
 		return harness.CommandOutcome{}, harness.WrapFailure(harness.CodeUsage, err.Error(), "", false, err)
@@ -457,6 +480,14 @@ func runLoopRegressionCommand(args []string) (harness.CommandOutcome, error) {
 		Budget:           profile.budget,
 		VerboseArtifacts: verboseArtifacts,
 	}
+	if ctx.DryRun {
+		return dryRunOutcome("loop regression", map[string]any{
+			"profile":        regressionFlags.Profile,
+			"baseline_path":  resolveLoopRegressionBaselinePath(opts.RepoRoot, regressionFlags.Profile, regressionFlags.BaselinePath),
+			"write_baseline": regressionFlags.WriteBaseline,
+			"config":         cfg,
+		}), nil
+	}
 
 	result, err := runLoopWithOptionalAPI(opts.APIURL, "judge", cfg)
 	if err != nil {
@@ -478,7 +509,7 @@ func runLoopRegressionCommand(args []string) (harness.CommandOutcome, error) {
 		}
 		return harness.CommandOutcome{
 			Checks: []harness.CheckResult{
-				{Name: "baseline_written", Status: "ok", Details: baselinePath},
+				{Name: "baseline_written", Status: harness.StatusOK, Details: baselinePath},
 			},
 			Artifacts: []harness.Artifact{
 				{Name: "behavior-baseline", Kind: "json", Path: baselinePath},
@@ -550,7 +581,7 @@ func runLoopRegressionCommand(args []string) (harness.CommandOutcome, error) {
 	return outcome, nil
 }
 
-func runLoopLabCommand(args []string) (harness.CommandOutcome, error) {
+func runLoopLabCommand(args []string, ctx harness.Context) (harness.CommandOutcome, error) {
 	if len(args) == 0 {
 		return harness.CommandOutcome{}, harness.NewFailure(
 			harness.CodeUsage,
@@ -563,6 +594,12 @@ func runLoopLabCommand(args []string) (harness.CommandOutcome, error) {
 	opts, err := parseLoopLabFlags(args[1:])
 	if err != nil {
 		return harness.CommandOutcome{}, harness.WrapFailure(harness.CodeUsage, err.Error(), "", false, err)
+	}
+	if ctx.DryRun {
+		return dryRunOutcome("loop lab "+action, map[string]any{
+			"action": action,
+			"flags":  opts,
+		}), nil
 	}
 
 	switch action {
@@ -648,7 +685,7 @@ func runLoopLabCommand(args []string) (harness.CommandOutcome, error) {
 		return harness.CommandOutcome{}, harness.NewFailure(
 			harness.CodeUsage,
 			fmt.Sprintf("unknown lab action: %s", action),
-			"use 'agentcli loop capabilities --format json' to discover lab actions",
+			"use 'agentcli loop --format json capabilities' to discover lab actions",
 			false,
 		)
 	}
@@ -706,48 +743,74 @@ func outcomeFromRunResult(result harnessloop.RunResult) harness.CommandOutcome {
 	return outcome
 }
 
-func boolStatus(ok bool) string {
-	if ok {
-		return "ok"
+func dryRunOutcome(command string, details any) harness.CommandOutcome {
+	return harness.CommandOutcome{
+		Checks: []harness.CheckResult{
+			{
+				Name:    "dry_run",
+				Status:  harness.StatusOK,
+				Details: "execution skipped",
+			},
+		},
+		Data: map[string]any{
+			"dry_run": true,
+			"command": command,
+			"details": details,
+		},
 	}
-	return "fail"
+}
+
+func boolStatus(ok bool) harness.Status {
+	if ok {
+		return harness.StatusOK
+	}
+	return harness.StatusFail
 }
 
 func parseLoopRuntimeFlags(args []string) (loopRuntimeFlags, []string, error) {
 	flags := loopRuntimeFlags{
 		Format: "text",
 	}
-	remaining := make([]string, 0, len(args))
-	for i := 0; i < len(args); i++ {
+	i := 0
+	for i < len(args) {
 		switch args[i] {
 		case "--format":
 			if i+1 >= len(args) {
 				return flags, nil, harness.NewFailure(harness.CodeUsage, "--format requires a value", "", false)
 			}
 			flags.Format = args[i+1]
-			i++
+			i += 2
 		case "--summary":
 			if i+1 >= len(args) {
 				return flags, nil, harness.NewFailure(harness.CodeUsage, "--summary requires a value", "", false)
 			}
 			flags.SummaryPath = args[i+1]
-			i++
+			i += 2
 		case "--no-color":
 			flags.NoColor = true
+			i++
 		case "--dry-run":
 			flags.DryRun = true
+			i++
 		case "--explain":
 			flags.Explain = true
+			i++
 		default:
-			remaining = append(remaining, args[i])
+			return validateLoopRuntimeFlags(flags, args[i:])
 		}
 	}
+	return validateLoopRuntimeFlags(flags, nil)
+}
+
+func validateLoopRuntimeFlags(flags loopRuntimeFlags, remaining []string) (loopRuntimeFlags, []string, error) {
+	out := make([]string, len(remaining))
+	copy(out, remaining)
 	switch flags.Format {
 	case "text", "json", "ndjson":
 	default:
 		return flags, nil, harness.NewFailure(harness.CodeUsage, "invalid --format value", "use text|json|ndjson", false)
 	}
-	return flags, remaining, nil
+	return flags, out, nil
 }
 
 func emitLoopFailureSummary(command string, runtime loopRuntimeFlags, err error) int {
@@ -755,7 +818,7 @@ func emitLoopFailureSummary(command string, runtime loopRuntimeFlags, err error)
 	summary := harness.CommandSummary{
 		SchemaVersion: harness.SummarySchemaVersion,
 		Command:       command,
-		Status:        string(harness.StatusFail),
+		Status:        harness.StatusFail,
 		StartedAt:     now,
 		FinishedAt:    now,
 		DurationMs:    0,
@@ -796,9 +859,18 @@ func parseLoopFlags(args []string) (loopFlags, error) {
 		return loopFlags{}, err
 	}
 	if len(remaining) > 0 {
-		return loopFlags{}, fmt.Errorf("unexpected argument: %s", remaining[0])
+		return loopFlags{}, unexpectedLoopArgError(remaining[0])
 	}
 	return opts, nil
+}
+
+func unexpectedLoopArgError(arg string) error {
+	switch arg {
+	case "--format", "--summary", "--no-color", "--dry-run", "--explain":
+		return fmt.Errorf("unexpected argument: %s (%s is a global flag; place it before the action)", arg, arg)
+	default:
+		return fmt.Errorf("unexpected argument: %s", arg)
+	}
 }
 
 func parseLoopBaseFlags(args []string, defaults loopFlags, allowMarkdown bool) (loopFlags, []string, error) {
@@ -866,7 +938,7 @@ func parseLoopQualityFlags(profile loopProfile, args []string) (loopProfileFlags
 		Threshold:     profile.threshold,
 		MaxIterations: profile.maxIterations,
 		Branch:        "autofix/onboarding-loop",
-	}, true)
+	}, false)
 	if err != nil {
 		return loopProfileFlags{}, err
 	}
@@ -887,7 +959,7 @@ func parseLoopQualityFlags(profile loopProfile, args []string) (loopProfileFlags
 		case "--no-verbose-artifacts":
 			opts.NoVerboseArtifacts = true
 		default:
-			return loopProfileFlags{}, fmt.Errorf("unexpected argument: %s", remaining[i])
+			return loopProfileFlags{}, unexpectedLoopArgError(remaining[i])
 		}
 	}
 	if opts.VerboseArtifacts && opts.NoVerboseArtifacts {
@@ -1002,7 +1074,7 @@ func parseLoopLabFlags(args []string) (loopLabFlags, error) {
 		case "--no-verbose-artifacts":
 			opts.NoVerboseArtifacts = true
 		default:
-			return loopLabFlags{}, fmt.Errorf("unexpected argument: %s", remaining[i])
+			return loopLabFlags{}, unexpectedLoopArgError(remaining[i])
 		}
 	}
 	if opts.VerboseArtifacts && opts.NoVerboseArtifacts {

@@ -22,7 +22,7 @@ version: 1.0
 
 | Intent | Command |
 | --- | --- |
-| Canonical command surface | `agentcli loop [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [--format text|json|ndjson] [--summary path] [--no-color] [--dry-run] [--explain] [command flags]` |
+| Canonical command surface | `agentcli loop [global flags] [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [command flags]` |
 | Lab command surface | `agentcli loop lab [compare|replay|run|judge|autofix] [advanced flags]` |
 | Discover governance settings | `agentcli loop profiles --repo-root .` |
 | Verify baseline loop health | `agentcli loop doctor --repo-root .` |
@@ -35,6 +35,8 @@ version: 1.0
 | Replay an iteration | `agentcli loop lab replay --repo-root . --run-id <run-id> --iter 1` |
 | Compare two runs | `agentcli loop lab compare --repo-root . --run-a <run-id-a> --run-b <run-id-b> [--format md --out .docs/onboarding-loop/compare/latest.md]` |
 | Advanced experiments | `agentcli loop lab run`, `... judge`, `... autofix` with `--repo-root . --mode committee --role-config <path> --max-iterations 1` |
+
+Note: `--md` output is supported only for `agentcli loop doctor`; quality/profile commands reject `--md`.
 
 ## Profiles
 

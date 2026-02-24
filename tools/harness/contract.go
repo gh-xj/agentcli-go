@@ -13,7 +13,7 @@ const (
 
 type CheckResult struct {
 	Name    string `json:"name"`
-	Status  string `json:"status"`
+	Status  Status `json:"status"`
 	Details string `json:"details,omitempty"`
 }
 
@@ -33,7 +33,7 @@ type Failure struct {
 type CommandSummary struct {
 	SchemaVersion string        `json:"schema_version"`
 	Command       string        `json:"command"`
-	Status        string        `json:"status"`
+	Status        Status        `json:"status"`
 	StartedAt     time.Time     `json:"started_at"`
 	FinishedAt    time.Time     `json:"finished_at"`
 	DurationMs    int64         `json:"duration_ms"`

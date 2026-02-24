@@ -8,7 +8,7 @@ Front page for project-local loop verification guidance.
 
 CLI surface:
 
-- `agentcli loop [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [--format text|json|ndjson] [--summary path] [--no-color] [--dry-run] [--explain] [command flags]`
+- `agentcli loop [global flags] [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [command flags]`
 - `agentcli loop lab [compare|replay|run|judge|autofix] [advanced flags]`
 
 ## What this includes

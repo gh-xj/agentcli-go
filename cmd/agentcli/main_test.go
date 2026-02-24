@@ -202,7 +202,28 @@ func TestRunLoopProfileSubcommand(t *testing.T) {
 }
 
 func TestRunLoopCapabilities(t *testing.T) {
+	exitCode := run([]string{"loop", "--format", "json", "capabilities"})
+	if exitCode != harness.ExitSuccess {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, harness.ExitSuccess)
+	}
+}
+
+func TestRunLoopCapabilitiesRejectsTrailingRuntimeFlags(t *testing.T) {
 	exitCode := run([]string{"loop", "capabilities", "--format", "json"})
+	if exitCode != harness.ExitUsage {
+		t.Fatalf("unexpected exit code: got %d want %d", exitCode, harness.ExitUsage)
+	}
+}
+
+func TestRunLoopDryRunSkipsExecution(t *testing.T) {
+	exitCode := run([]string{
+		"loop",
+		"--dry-run",
+		"--format", "json",
+		"run",
+		"--repo-root", ".",
+		"--api", "http://127.0.0.1:0",
+	})
 	if exitCode != harness.ExitSuccess {
 		t.Fatalf("unexpected exit code: got %d want %d", exitCode, harness.ExitSuccess)
 	}
@@ -318,6 +339,16 @@ func TestParseLoopFlags(t *testing.T) {
 	}
 }
 
+func TestParseLoopFlagsGlobalFlagPlacementHint(t *testing.T) {
+	_, err := parseLoopFlags([]string{"--format", "json"})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "global flag; place it before the action") {
+		t.Fatalf("expected placement hint, got: %v", err)
+	}
+}
+
 func TestParseLoopLabFlags(t *testing.T) {
 	opts, err := parseLoopLabFlags([]string{
 		"--repo-root", ".",
@@ -342,6 +373,46 @@ func TestParseLoopLabFlags(t *testing.T) {
 	}
 	if opts.RepoRoot != "." || opts.Threshold != 8.5 || opts.MaxIterations != 2 || opts.Branch != "autofix/test" || opts.APIURL != "http://127.0.0.1:7878" || opts.Mode != "committee" || opts.RoleConfig != ".docs/roles.json" || opts.Seed != 7 || opts.Budget != 3 || opts.RunA != "runA" || opts.RunB != "runB" || opts.RunID != "runC" || opts.Iteration != 2 || opts.Format != "md" || opts.Out != ".docs/compare.md" || !opts.VerboseArtifacts {
 		t.Fatalf("unexpected parse values: %+v", opts)
+	}
+}
+
+func TestParseLoopRuntimeFlagsLeadingGlobalsOnly(t *testing.T) {
+	flags, remaining, err := parseLoopRuntimeFlags([]string{
+		"--format", "json",
+		"--dry-run",
+		"lab",
+		"compare",
+		"--format", "md",
+		"--run-a", "runA",
+		"--run-b", "runB",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if flags.Format != "json" || !flags.DryRun {
+		t.Fatalf("unexpected runtime flags: %+v", flags)
+	}
+	if len(remaining) != 8 || remaining[0] != "lab" || remaining[2] != "--format" || remaining[3] != "md" {
+		t.Fatalf("unexpected remaining args: %+v", remaining)
+	}
+}
+
+func TestParseLoopRuntimeFlagsStopsAtAction(t *testing.T) {
+	flags, remaining, err := parseLoopRuntimeFlags([]string{
+		"lab",
+		"compare",
+		"--format", "md",
+		"--run-a", "runA",
+		"--run-b", "runB",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if flags.Format != "text" {
+		t.Fatalf("unexpected runtime format: %s", flags.Format)
+	}
+	if len(remaining) != 8 || remaining[0] != "lab" || remaining[2] != "--format" || remaining[3] != "md" {
+		t.Fatalf("unexpected remaining args: %+v", remaining)
 	}
 }
 
@@ -374,6 +445,13 @@ func TestParseLoopQualityFlags(t *testing.T) {
 	}
 	if opts.RepoRoot != "." || opts.Threshold != 8.5 || opts.MaxIterations != 2 || opts.Branch != "autofix/test" || opts.APIURL != "http://127.0.0.1:7878" || opts.RoleConfig != ".docs/quality.roles.json" || !opts.VerboseArtifacts {
 		t.Fatalf("unexpected parse values: %+v", opts)
+	}
+}
+
+func TestParseLoopQualityFlagsRejectMarkdown(t *testing.T) {
+	_, err := parseLoopQualityFlags(loopProfiles["quality"], []string{"--md"})
+	if err == nil {
+		t.Fatal("expected error for --md in quality/profile flags")
 	}
 }
 
