@@ -20,3 +20,23 @@ type Event struct {
 	ErrorSummary  string    `json:"error_summary,omitempty"`
 	EvidencePaths []string  `json:"evidence_paths,omitempty"`
 }
+
+type Action string
+
+const (
+	ActionCreateIssue   Action = "create_issue"
+	ActionAppendComment Action = "append_comment"
+	ActionPendingReview Action = "pending_review"
+	ActionQueueRetry    Action = "queue_retry"
+)
+
+type DecisionInput struct {
+	RepoConfidence float64
+	HasOpenIssue   bool
+	Fingerprint    string
+}
+
+type Decision struct {
+	Action Action
+	Reason string
+}
