@@ -175,6 +175,35 @@ func TestFileIdempotencyStoreConcurrentPutDoesNotLoseUpdates(t *testing.T) {
 	}
 }
 
+func TestFileIdempotencyStorePutRecoversStaleLock(t *testing.T) {
+	store := fileIdempotencyStore{Path: filepath.Join(t.TempDir(), "marker.json")}
+	lockPath := store.Path + ".lock"
+
+	if err := os.WriteFile(lockPath, []byte("stale"), 0o600); err != nil {
+		t.Fatalf("create lock file: %v", err)
+	}
+
+	staleTime := time.Now().Add(-idempotencyStaleLock - time.Second)
+	if err := os.Chtimes(lockPath, staleTime, staleTime); err != nil {
+		t.Fatalf("mark lock file stale: %v", err)
+	}
+
+	if err := store.Put("fp-stale", "https://github.com/gh-xj/agentcli-go/issues/999"); err != nil {
+		t.Fatalf("put with stale lock should recover, got error: %v", err)
+	}
+
+	gotURL, ok, err := store.Get("fp-stale")
+	if err != nil {
+		t.Fatalf("get marker after stale lock recovery: %v", err)
+	}
+	if !ok {
+		t.Fatalf("expected marker to exist after stale lock recovery")
+	}
+	if gotURL != "https://github.com/gh-xj/agentcli-go/issues/999" {
+		t.Fatalf("unexpected marker url: got %q", gotURL)
+	}
+}
+
 type fakeLedger struct {
 	findRecord dogfood.LedgerRecord
 	findOK     bool

@@ -21,6 +21,7 @@ const defaultLedgerPath = ".docs/dogfood/ledger.json"
 const (
 	idempotencyLockTimeout = 5 * time.Second
 	idempotencyLockPoll    = 10 * time.Millisecond
+	idempotencyStaleLock   = 30 * time.Second
 )
 
 type ledgerStore interface {
@@ -403,11 +404,43 @@ func (s fileIdempotencyStore) acquireLock() (func(), error) {
 		if !errors.Is(err, os.ErrExist) {
 			return nil, fmt.Errorf("create idempotency marker lock %q: %w", lockPath, err)
 		}
+
+		recovered, recoverErr := recoverStaleLock(lockPath, time.Now())
+		if recoverErr != nil {
+			return nil, recoverErr
+		}
+		if recovered {
+			continue
+		}
+
 		if time.Now().After(deadline) {
 			return nil, fmt.Errorf("acquire idempotency marker lock %q: timeout after %s", lockPath, idempotencyLockTimeout)
 		}
 		time.Sleep(idempotencyLockPoll)
 	}
+}
+
+func recoverStaleLock(lockPath string, now time.Time) (bool, error) {
+	info, err := os.Stat(lockPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
+		}
+		return false, fmt.Errorf("stat idempotency marker lock %q: %w", lockPath, err)
+	}
+
+	if now.Sub(info.ModTime()) < idempotencyStaleLock {
+		return false, nil
+	}
+
+	if err := os.Remove(lockPath); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return true, nil
+		}
+		return false, fmt.Errorf("remove stale idempotency marker lock %q: %w", lockPath, err)
+	}
+
+	return true, nil
 }
 
 func markerPathForLedger(ledgerPath string) string {
