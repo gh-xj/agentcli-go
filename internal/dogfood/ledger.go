@@ -14,6 +14,8 @@ import (
 const (
 	LedgerSchemaVersionV1 = "dogfood-ledger.v1"
 	LedgerStatusOpen      = "open"
+	ledgerLockTimeout     = 5 * time.Second
+	ledgerLockPoll        = 10 * time.Millisecond
 )
 
 type LedgerRecord struct {
@@ -38,13 +40,15 @@ func (l Ledger) Append(rec LedgerRecord) error {
 		return errors.New("ledger path is empty")
 	}
 
-	records, err := l.readAll()
-	if err != nil {
-		return err
-	}
+	return l.withExclusiveLock(func() error {
+		records, err := l.readAll()
+		if err != nil {
+			return err
+		}
 
-	records = append(records, normalizeLedgerRecord(rec))
-	return l.writeAll(records)
+		records = append(records, normalizeLedgerRecord(rec))
+		return l.writeAll(records)
+	})
 }
 
 func (l Ledger) FindOpenByFingerprint(fp string) (LedgerRecord, bool, error) {
@@ -60,8 +64,11 @@ func (l Ledger) FindOpenByFingerprint(fp string) (LedgerRecord, bool, error) {
 	needle := strings.TrimSpace(fp)
 	for i := len(records) - 1; i >= 0; i-- {
 		rec := records[i]
-		if strings.TrimSpace(rec.Fingerprint) == needle && strings.EqualFold(strings.TrimSpace(rec.Status), LedgerStatusOpen) {
-			return rec, true, nil
+		if strings.TrimSpace(rec.Fingerprint) == needle {
+			if strings.EqualFold(strings.TrimSpace(rec.Status), LedgerStatusOpen) {
+				return rec, true, nil
+			}
+			return LedgerRecord{}, false, nil
 		}
 	}
 
@@ -140,4 +147,40 @@ func normalizeLedgerRecord(rec LedgerRecord) LedgerRecord {
 		rec.CreatedAt = rec.CreatedAt.UTC()
 	}
 	return rec
+}
+
+func (l Ledger) withExclusiveLock(fn func() error) error {
+	unlock, err := l.acquireLock()
+	if err != nil {
+		return err
+	}
+	defer unlock()
+	return fn()
+}
+
+func (l Ledger) acquireLock() (func(), error) {
+	dir := filepath.Dir(l.Path)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return nil, fmt.Errorf("create ledger dir %q: %w", dir, err)
+	}
+
+	lockPath := l.Path + ".lock"
+	deadline := time.Now().Add(ledgerLockTimeout)
+	for {
+		lock, err := os.OpenFile(lockPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+		if err == nil {
+			_ = lock.Close()
+			return func() {
+				_ = os.Remove(lockPath)
+			}, nil
+		}
+
+		if !errors.Is(err, os.ErrExist) {
+			return nil, fmt.Errorf("create ledger lock %q: %w", lockPath, err)
+		}
+		if time.Now().After(deadline) {
+			return nil, fmt.Errorf("acquire ledger lock %q: timeout after %s", lockPath, ledgerLockTimeout)
+		}
+		time.Sleep(ledgerLockPoll)
+	}
 }

@@ -45,3 +45,39 @@ func TestResolveRepoMarksPendingWhenSignalIsWeak(t *testing.T) {
 		t.Fatalf("expected cwd_guess reason, got %q", res.Reason)
 	}
 }
+
+func TestResolveRepoParsesGitRemoteWithTrailingSlash(t *testing.T) {
+	r := Router{MinConfidence: 0.75}
+
+	res := r.Resolve(RouteInput{
+		GitRemote: "https://github.com/gh-xj/agentcli-go/",
+	})
+
+	if res.Repo != "gh-xj/agentcli-go" {
+		t.Fatalf("expected inferred repo, got %q", res.Repo)
+	}
+	if res.Pending {
+		t.Fatalf("expected strong remote signal to be non-pending")
+	}
+	if res.Reason != "git_remote" {
+		t.Fatalf("expected git_remote reason, got %q", res.Reason)
+	}
+}
+
+func TestResolveRepoParsesSSHRemoteWithPort(t *testing.T) {
+	r := Router{MinConfidence: 0.75}
+
+	res := r.Resolve(RouteInput{
+		GitRemote: "ssh://git@github.com:2222/gh-xj/agentcli-go.git",
+	})
+
+	if res.Repo != "gh-xj/agentcli-go" {
+		t.Fatalf("expected inferred repo, got %q", res.Repo)
+	}
+	if res.Pending {
+		t.Fatalf("expected strong remote signal to be non-pending")
+	}
+	if res.Reason != "git_remote" {
+		t.Fatalf("expected git_remote reason, got %q", res.Reason)
+	}
+}

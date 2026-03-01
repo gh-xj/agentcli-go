@@ -19,7 +19,7 @@ type RouteResult struct {
 	Pending    bool
 }
 
-var githubRemotePattern = regexp.MustCompile(`(?i)github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?$`)
+var githubRemotePattern = regexp.MustCompile(`(?i)github\.com[:/](?:\d+/)?([^/\s]+)/([^/\s]+?)(?:\.git)?/?$`)
 
 func (r Router) Resolve(in RouteInput) RouteResult {
 	override := strings.TrimSpace(in.OverrideRepo)
