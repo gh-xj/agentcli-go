@@ -2,7 +2,6 @@ package dogfood
 
 import (
 	"encoding/json"
-	"strings"
 	"testing"
 	"time"
 )
@@ -21,10 +20,14 @@ func TestEventJSONIncludesRequiredKeys(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := string(b)
+	var payload map[string]json.RawMessage
+	if err := json.Unmarshal(b, &payload); err != nil {
+		t.Fatal(err)
+	}
+
 	for _, key := range []string{"schema_version", "event_id", "event_type", "signal_source", "timestamp"} {
-		if !strings.Contains(s, key) {
-			t.Fatalf("missing key %s in %s", key, s)
+		if _, ok := payload[key]; !ok {
+			t.Fatalf("missing key %s in payload %s", key, string(b))
 		}
 	}
 }
