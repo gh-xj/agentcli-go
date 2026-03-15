@@ -200,6 +200,18 @@ func PresetDescription(name string) (string, bool) {
 	return description, ok
 }
 
+// CommandPresetNames returns the supported preset names in sorted order.
+// This is an alias for SortedPresetNames, matching the root-level API name.
+func CommandPresetNames() []string {
+	return SortedPresetNames()
+}
+
+// CommandPresetDescription returns the description for a preset.
+// This is an alias for PresetDescription, matching the root-level API name.
+func CommandPresetDescription(name string) (string, bool) {
+	return PresetDescription(name)
+}
+
 func (s *ScaffoldService) ensureEmptyDir(root string) error {
 	if s.fs.Exists(root) {
 		entries, err := s.fs.ReadDir(root)

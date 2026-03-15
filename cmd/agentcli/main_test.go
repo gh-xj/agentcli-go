@@ -78,11 +78,32 @@ func TestRunHelpIncludesMigrateEntryAndAgentPrompt(t *testing.T) {
 			t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
 		}
 	})
+	if !strings.Contains(stderr, "agentcli --version") {
+		t.Fatalf("expected version usage in help: %s", stderr)
+	}
 	if !strings.Contains(stderr, "agentcli migrate --source path [--mode safe|in-place] [--dry-run|--apply]") {
 		t.Fatalf("expected migrate help usage in stderr: %s", stderr)
 	}
 	if !strings.Contains(stderr, "agent prompt: run 'agentcli migrate --source ./scripts --mode safe --dry-run' first") {
 		t.Fatalf("expected agent prompt in help text: %s", stderr)
+	}
+}
+
+func TestRunVersionFlag(t *testing.T) {
+	stdout, stderr := captureOutputs(t, func() {
+		exitCode := run([]string{"--version"})
+		if exitCode != agentcli.ExitSuccess {
+			t.Fatalf("unexpected exit code: got %d want %d", exitCode, agentcli.ExitSuccess)
+		}
+	})
+	if stderr != "" {
+		t.Fatalf("expected version output on stdout only, got stderr: %q", stderr)
+	}
+	if strings.TrimSpace(stdout) == "" {
+		t.Fatalf("expected non-empty version output")
+	}
+	if !strings.Contains(stdout, "agentcli ") {
+		t.Fatalf("expected version output to include CLI name: %s", stdout)
 	}
 }
 

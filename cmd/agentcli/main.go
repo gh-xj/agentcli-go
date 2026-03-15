@@ -3,8 +3,17 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime/debug"
+	"strings"
 
 	agentcli "github.com/gh-xj/agentcli-go"
+	"github.com/gh-xj/agentcli-go/service"
+)
+
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
 )
 
 func main() {
@@ -18,6 +27,9 @@ func run(args []string) int {
 	}
 
 	switch args[0] {
+	case "--version", "-v":
+		printVersion()
+		return agentcli.ExitSuccess
 	case "new":
 		return runNew(args[1:])
 	case "add":
@@ -38,6 +50,39 @@ func run(args []string) int {
 		printUsage()
 		return agentcli.ExitUsage
 	}
+}
+
+func printVersion() {
+	v, c, d := versionInfo()
+	fmt.Fprintf(os.Stdout, "agentcli %s (%s %s)\n", v, c, d)
+}
+
+func versionInfo() (string, string, string) {
+	outVersion := version
+	outCommit := commit
+	outDate := date
+
+	if info, ok := debug.ReadBuildInfo(); ok {
+		if outVersion == "dev" && info.Main.Version != "" && info.Main.Version != "(devel)" {
+			outVersion = info.Main.Version
+		}
+		for _, setting := range info.Settings {
+			switch setting.Key {
+			case "vcs.revision":
+				if outCommit == "none" && setting.Value != "" {
+					outCommit = setting.Value
+				}
+			case "vcs.time":
+				if outDate == "unknown" && setting.Value != "" {
+					outDate = strings.TrimSpace(strings.SplitN(setting.Value, " ", 2)[0])
+				}
+			}
+		}
+	}
+	if outVersion == "" {
+		outVersion = "dev"
+	}
+	return outVersion, outCommit, outDate
 }
 
 func runNew(args []string) int {
@@ -86,7 +131,7 @@ func runNew(args []string) int {
 		return agentcli.ExitUsage
 	}
 
-	root, err := agentcli.ScaffoldNewWithOptions(baseDir, name, module, agentcli.ScaffoldNewOptions{
+	root, err := service.Get().ScaffoldSvc.New(baseDir, name, module, service.ScaffoldNewOptions{
 		InExistingModule: inExistingModule,
 		Minimal:          minimal,
 	})
@@ -149,9 +194,9 @@ func runAdd(args []string) int {
 	}
 
 	if listPresets {
-		for _, presetName := range agentcli.CommandPresetNames() {
-			description, _ := agentcli.CommandPresetDescription(presetName)
-			fmt.Fprintf(os.Stdout, "%s: %s\n", presetName, description)
+		for _, presetName := range service.CommandPresetNames() {
+			desc, _ := service.CommandPresetDescription(presetName)
+			fmt.Fprintf(os.Stdout, "%s: %s\n", presetName, desc)
 		}
 		return agentcli.ExitSuccess
 	}
@@ -160,7 +205,7 @@ func runAdd(args []string) int {
 		fmt.Fprintln(os.Stderr, "usage: agentcli add command [--dir path] [--description text] [--preset name] [--list-presets] <name>")
 		return agentcli.ExitUsage
 	}
-	if err := agentcli.ScaffoldAddCommand(rootDir, name, description, preset); err != nil {
+	if err := service.Get().ScaffoldSvc.AddCommand(rootDir, name, description, preset); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return agentcli.ExitFailure
 	}
@@ -188,7 +233,7 @@ func runDoctor(args []string) int {
 		}
 	}
 
-	report := agentcli.Doctor(rootDir)
+	report := service.Get().DoctorSvc.Run(rootDir)
 	if jsonOutput {
 		out, err := report.JSON()
 		if err != nil {
@@ -220,6 +265,7 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "    monorepo default recommendation: use --in-existing-module")
 	fmt.Fprintln(os.Stderr, "  agentcli add command [--dir path] [--description text] [--preset name] [--list-presets] <name>")
 	fmt.Fprintln(os.Stderr, "  agentcli doctor [--dir path] [--json]")
+	fmt.Fprintln(os.Stderr, "  agentcli --version")
 	fmt.Fprintln(os.Stderr, "  agentcli migrate --source path [--mode safe|in-place] [--dry-run|--apply] [--out path]")
 	fmt.Fprintln(os.Stderr, "    agent prompt: run 'agentcli migrate --source ./scripts --mode safe --dry-run' first")
 	fmt.Fprintln(os.Stderr, "  agentcli loop [global flags] [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [command flags]")
@@ -228,8 +274,8 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  agentcli loop-server [--addr host:port] [--repo-root path]")
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Presets for add command:")
-	for _, presetName := range agentcli.CommandPresetNames() {
-		description, _ := agentcli.CommandPresetDescription(presetName)
-		fmt.Fprintf(os.Stderr, "  %s: %s\n", presetName, description)
+	for _, presetName := range service.CommandPresetNames() {
+		desc, _ := service.CommandPresetDescription(presetName)
+		fmt.Fprintf(os.Stderr, "  %s: %s\n", presetName, desc)
 	}
 }
