@@ -58,12 +58,16 @@ func (r DoctorReport) JSON() (string, error) {
 	return string(out), nil
 }
 
+// Deprecated: Use service.Get().ScaffoldSvc.New() instead.
+//
 // ScaffoldNew creates a new CLI project using the golden agentcli layout.
 // This is now cobrax-only by design.
 func ScaffoldNew(baseDir, name, module string) (string, error) {
 	return ScaffoldNewWithOptions(baseDir, name, module, ScaffoldNewOptions{})
 }
 
+// Deprecated: Use service.Get().ScaffoldSvc.New() instead.
+//
 // ScaffoldNewWithOptions creates a new CLI project using the golden agentcli
 // layout with optional generation modes.
 func ScaffoldNewWithOptions(baseDir, name, module string, opts ScaffoldNewOptions) (string, error) {
@@ -148,6 +152,8 @@ func ScaffoldNewWithOptions(baseDir, name, module string, opts ScaffoldNewOption
 	return root, nil
 }
 
+// Deprecated: Use service.Get().ScaffoldSvc.AddCommand() instead.
+//
 // ScaffoldAddCommand creates a command file and wires it into cmd/root.go.
 func ScaffoldAddCommand(rootDir, commandName, description, preset string) error {
 	if strings.TrimSpace(rootDir) == "" {
@@ -203,11 +209,15 @@ func ScaffoldAddCommand(rootDir, commandName, description, preset string) error 
 	return os.WriteFile(rootFile, []byte(updated), 0644)
 }
 
+// Deprecated: Use service.CommandPresetNames() instead.
+//
 // CommandPresetNames returns the supported preset names in sorted order.
 func CommandPresetNames() []string {
 	return sortedPresetNames()
 }
 
+// Deprecated: Use service.CommandPresetDescription() instead.
+//
 // CommandPresetDescription returns the description for a preset.
 func CommandPresetDescription(name string) (string, bool) {
 	description, ok := commandPresets[name]
@@ -223,6 +233,8 @@ func sortedPresetNames() []string {
 	return names
 }
 
+// Deprecated: Use service.Get().DoctorSvc.Run() instead.
+//
 // Doctor checks whether a project follows the golden scaffold contract.
 func Doctor(rootDir string) DoctorReport {
 	if strings.TrimSpace(rootDir) == "" {

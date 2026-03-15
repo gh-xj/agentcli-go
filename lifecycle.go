@@ -8,6 +8,8 @@ type Hook interface {
 	Postflight(*AppContext) error
 }
 
+// Deprecated: Use service.Get().LifecycleSvc.Run() instead.
+//
 // RunLifecycle executes preflight, run, and postflight in order.
 func RunLifecycle(app *AppContext, hook Hook, run func(*AppContext) error) error {
 	if app == nil {

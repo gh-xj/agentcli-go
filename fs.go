@@ -6,17 +6,23 @@ import (
 	"strings"
 )
 
+// Deprecated: Use dal.NewOSFileSystem() or service.Get().FS instead.
+//
 // FileExists checks if a path exists.
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
 }
 
+// Deprecated: Use dal.NewOSFileSystem() or service.Get().FS instead.
+//
 // EnsureDir creates a directory (and parents) if it doesn't exist.
 func EnsureDir(dir string) error {
 	return os.MkdirAll(dir, 0755)
 }
 
+// Deprecated: Use dal.NewOSFileSystem() or service.Get().FS instead.
+//
 // GetBaseName returns the filename without its extension.
 func GetBaseName(path string) string {
 	base := filepath.Base(path)

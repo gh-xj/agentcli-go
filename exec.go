@@ -9,6 +9,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Deprecated: Use dal.NewOSExecutor() or service.Get().Exec instead.
+//
 // RunCommand executes a command and returns its stdout.
 // Returns an error that includes stderr on failure.
 func RunCommand(name string, args ...string) (string, error) {
@@ -23,6 +25,8 @@ func RunCommand(name string, args ...string) (string, error) {
 	return stdout.String(), nil
 }
 
+// Deprecated: Use dal.NewOSExecutor() or service.Get().Exec instead.
+//
 // RunOsascript executes an AppleScript and returns trimmed stdout.
 func RunOsascript(script string) string {
 	cmd := exec.Command("osascript", "-e", script)
@@ -30,12 +34,16 @@ func RunOsascript(script string) string {
 	return strings.TrimSpace(string(out))
 }
 
+// Deprecated: Use dal.NewOSExecutor() or service.Get().Exec instead.
+//
 // Which checks if a command exists in PATH.
 func Which(cmd string) bool {
 	_, err := exec.LookPath(cmd)
 	return err == nil
 }
 
+// Deprecated: Use dal.NewOSExecutor() or service.Get().Exec instead.
+//
 // CheckDependency fatals if a required command is not in PATH.
 func CheckDependency(name, installHint string) {
 	if !Which(name) {

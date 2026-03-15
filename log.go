@@ -8,6 +8,8 @@ import (
 	"github.com/samber/lo"
 )
 
+// Deprecated: Use dal.NewZerologLogger() or service.Get().Log instead.
+//
 // InitLogger sets up zerolog with a console writer on stderr.
 // Reads -v/--verbose from os.Args to enable debug-level output.
 func InitLogger() {

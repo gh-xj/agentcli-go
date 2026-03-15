@@ -6,6 +6,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Deprecated: Use operator.NewCLIArgsOperator() or service.Get().ArgsOp instead.
+//
 // ParseArgs parses --key value style arguments into a map.
 // Flags without a value (or followed by another flag) get value "true".
 func ParseArgs(args []string) map[string]string {
@@ -24,6 +26,8 @@ func ParseArgs(args []string) map[string]string {
 	return result
 }
 
+// Deprecated: Use operator.NewCLIArgsOperator() or service.Get().ArgsOp instead.
+//
 // RequireArg gets a required argument or calls log.Fatal.
 func RequireArg(args map[string]string, key, usage string) string {
 	if val, ok := args[key]; ok && val != "" {
@@ -33,6 +37,8 @@ func RequireArg(args map[string]string, key, usage string) string {
 	return ""
 }
 
+// Deprecated: Use operator.NewCLIArgsOperator() or service.Get().ArgsOp instead.
+//
 // GetArg gets an optional argument with a default value.
 func GetArg(args map[string]string, key, defaultVal string) string {
 	if val, ok := args[key]; ok && val != "" {
@@ -41,6 +47,8 @@ func GetArg(args map[string]string, key, defaultVal string) string {
 	return defaultVal
 }
 
+// Deprecated: Use operator.NewCLIArgsOperator() or service.Get().ArgsOp instead.
+//
 // HasFlag checks if a boolean flag is set.
 func HasFlag(args map[string]string, key string) bool {
 	val, ok := args[key]
