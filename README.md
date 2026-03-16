@@ -233,56 +233,84 @@ This repo is published as an agent skill at: https://clawhub.ai/gh-xj/agentcli-g
 package main
 
 import (
+    "fmt"
     "os"
+    "slices"
 
-    "github.com/gh-xj/agentcli-go"
+    "github.com/gh-xj/agentcli-go/dal"
+    "github.com/gh-xj/agentcli-go/operator"
     "github.com/rs/zerolog/log"
 )
 
 func main() {
-    agentcli.InitLogger()
-    args := agentcli.ParseArgs(os.Args[1:])
+    verbose := slices.Contains(os.Args, "-v") || slices.Contains(os.Args, "--verbose")
+    dal.NewLogger().Init(verbose, os.Stderr)
 
-    src := agentcli.RequireArg(args, "src", "--src path")
-    dst := agentcli.GetArg(args, "dst", "/tmp/out")
+    argsOp := operator.NewArgsOperator()
+    args := argsOp.Parse(os.Args[1:])
+    src, err := argsOp.Require(args, "src", "--src path")
+    if err != nil {
+        log.Fatal().Err(err).Msg("missing required flag")
+    }
+    dst := argsOp.Get(args, "dst", "/tmp/out")
 
-    if !agentcli.FileExists(src) {
+    fs := dal.NewFileSystem()
+    if !fs.Exists(src) {
         log.Fatal().Str("src", src).Msg("source not found")
     }
+    fs.EnsureDir(dst)
 
-    agentcli.EnsureDir(dst)
-    out, err := agentcli.RunCommand("rsync", "-av", src, dst)
+    exec := dal.NewExecutor()
+    out, err := exec.Run("rsync", "-av", src, dst)
     if err != nil {
         log.Fatal().Err(err).Msg("sync failed")
     }
-    log.Info().Msg(out)
+    fmt.Print(out)
 }
 ```
 
 Run with: `go run . --src ./data --dst /backup`
 
-This style of usage is intentionally minimal so agents can reuse it as a baseline and keep project rules consistent.
-
 ---
 
 ## API Reference
 
-| Function | Description |
-|----------|-------------|
-| `InitLogger()` | zerolog setup with `-v`/`--verbose` for debug output |
-| `ParseArgs(args)` | Parse `--key value` flags into `map[string]string` |
-| `RequireArg(args, key, usage)` | Required flag — fatal if missing |
-| `GetArg(args, key, default)` | Optional flag with default |
-| `HasFlag(args, key)` | Boolean flag check |
-| `RunCommand(name, args...)` | Run external command, return stdout |
-| `RunOsascript(script)` | Execute AppleScript (macOS) |
-| `Which(bin)` | Check if binary is on PATH |
-| `CheckDependency(name, installHint)` | Assert dependency exists or fatal |
-| `FileExists(path)` | File/dir existence check |
-| `EnsureDir(path)` | Create directory tree |
-| `GetBaseName(path)` | Filename without extension |
+### Root Package (Model Layer)
 
-### Runtime modules
+| Type | Description |
+|------|-------------|
+| `AppContext` | Shared runtime context (Logger, IO, Meta, Values) |
+| `Hook` | Preflight/Postflight interface |
+| `CLIError` | Typed error with exit code |
+| `ResolveExitCode(err)` | Map error to exit code |
+| `DoctorReport` | Scaffold compliance check results |
+
+### DAL Layer (`dal/`)
+
+| Type | Description |
+|------|-------------|
+| `FileSystem` / `NewFileSystem()` | Exists, EnsureDir, ReadFile, WriteFile, ReadDir, BaseName |
+| `Executor` / `NewExecutor()` | Run, RunInDir, RunOsascript, Which |
+| `Logger` / `NewLogger()` | Init(verbose, writer) — zerolog setup |
+
+### Operator Layer (`operator/`)
+
+| Type | Description |
+|------|-------------|
+| `ArgsOperator` / `NewArgsOperator()` | Parse, Require, Get, HasFlag |
+| `TemplateOperator` / `NewTemplateOperator(fs)` | RenderTemplate, KebabToCamel, ResolveParentModule |
+| `ComplianceOperator` / `NewComplianceOperator(fs)` | CheckFileExists, CheckFileContains, ValidateCommandName |
+
+### Service Layer (`service/`)
+
+| Type | Description |
+|------|-------------|
+| `service.Get()` | Wire DI container singleton |
+| `ScaffoldService` | New (scaffold project), AddCommand |
+| `DoctorService` | Run (compliance checks + DAG validation) |
+| `LifecycleService` | Run (preflight/run/postflight) |
+
+### Adapters
 
 - **`cobrax`** — Cobra adapter with standardized persistent flags (`--verbose`, `--config`, `--json`, `--no-color`) and deterministic exit code mapping
 - **`configx`** — Config loading with deterministic precedence: `Defaults < File < Env < Flags`
@@ -291,7 +319,7 @@ This style of usage is intentionally minimal so agents can reuse it as a baselin
 
 ## Quick Start: Scaffold a New Project
 
-Use `agentcli new` to generate a fully-wired project with Taskfile, smoke tests, and schema contracts:
+Use `agentcli new` to generate a fully-wired DAG project with Taskfile, smoke tests, Wire DI, and schema contracts:
 
 ```bash
 agentcli new --module github.com/me/my-tool my-tool
@@ -322,6 +350,9 @@ Generated layout:
 my-tool/
 ├── main.go
 ├── cmd/root.go
+├── service/{container,wire}.go
+├── operator/{interfaces,example_op}.go
+├── dal/{interfaces,filesystem}.go
 ├── internal/app/{bootstrap,lifecycle,errors}.go
 ├── internal/config/{schema,load}.go
 ├── internal/io/output.go

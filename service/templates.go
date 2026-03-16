@@ -16,7 +16,7 @@ const goModTpl = `module {{.Module}}
 
 go 1.25.5
 
-require github.com/gh-xj/agentcli-go v0.2.3
+require github.com/gh-xj/agentcli-go v0.3.0
 
 {{.GokitReplaceLine}}
 `

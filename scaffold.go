@@ -16,12 +16,6 @@ type DoctorReport struct {
 	Findings      []DoctorFinding `json:"findings"`
 }
 
-// ScaffoldNewOptions holds options for scaffold creation.
-type ScaffoldNewOptions struct {
-	InExistingModule bool
-	Minimal          bool
-}
-
 // JSON returns the report as indented JSON.
 func (r DoctorReport) JSON() (string, error) {
 	out, err := json.MarshalIndent(r, "", "  ")
