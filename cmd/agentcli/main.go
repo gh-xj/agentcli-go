@@ -224,6 +224,7 @@ func runAdd(args []string) int {
 func runDoctor(args []string) int {
 	rootDir := "."
 	jsonOutput := false
+	mode := ""
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--dir":
@@ -235,13 +236,29 @@ func runDoctor(args []string) int {
 			i++
 		case "--json":
 			jsonOutput = true
+		case "--mode":
+			if i+1 >= len(args) {
+				fmt.Fprintln(os.Stderr, "--mode requires a value")
+				return agentcli.ExitUsage
+			}
+			mode = args[i+1]
+			if mode != "lean" && mode != "full" {
+				fmt.Fprintf(os.Stderr, "--mode must be lean or full, got: %s\n", mode)
+				return agentcli.ExitUsage
+			}
+			i++
 		default:
 			fmt.Fprintf(os.Stderr, "unexpected argument: %s\n", args[i])
 			return agentcli.ExitUsage
 		}
 	}
 
-	report := service.Get().DoctorSvc.Run(rootDir)
+	var report agentcli.DoctorReport
+	if mode != "" {
+		report = service.Get().DoctorSvc.RunWithMode(rootDir, mode)
+	} else {
+		report = service.Get().DoctorSvc.Run(rootDir)
+	}
 	if jsonOutput {
 		out, err := report.JSON()
 		if err != nil {
@@ -272,7 +289,7 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  agentcli new [--dir path] [--in-existing-module] [--minimal] [--full] [--module module/path] <name>")
 	fmt.Fprintln(os.Stderr, "    monorepo default recommendation: use --in-existing-module")
 	fmt.Fprintln(os.Stderr, "  agentcli add command [--dir path] [--description text] [--preset name] [--list-presets] <name>")
-	fmt.Fprintln(os.Stderr, "  agentcli doctor [--dir path] [--json]")
+	fmt.Fprintln(os.Stderr, "  agentcli doctor [--dir path] [--json] [--mode lean|full]")
 	fmt.Fprintln(os.Stderr, "  agentcli --version")
 	fmt.Fprintln(os.Stderr, "  agentcli migrate --source path [--mode safe|in-place] [--dry-run|--apply] [--out path]")
 	fmt.Fprintln(os.Stderr, "    agent prompt: run 'agentcli migrate --source ./scripts --mode safe --dry-run' first")

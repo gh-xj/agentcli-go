@@ -10,6 +10,35 @@ import (
 	"github.com/gh-xj/agentcli-go/dal"
 )
 
+// createLeanProject creates a temp dir with lean-mode files (no internal/app, no DAG).
+func createLeanProject(t *testing.T) string {
+	t.Helper()
+	dir := t.TempDir()
+
+	files := map[string]string{
+		"main.go": "package main\n\nfunc main() {}\n",
+		"cmd/root.go": "package cmd\n\nimport (\n\t\"github.com/gh-xj/agentcli-go/cobrax\"\n)\n\n" +
+			"func init() {\n\t// agentcli:add-command\n}\n\nvar _ = cobrax.Execute\n",
+		"internal/io/output.go":             "package appio\n",
+		"internal/tools/smokecheck/main.go": "package main\n",
+		"test/e2e/cli_test.go":              "package e2e\n",
+		"test/smoke/version.schema.json":    `{"schema_version": "v1"}`,
+		"Taskfile.yml":                      "ci:\nverify:\ntest/smoke/version.output.json\ninternal/tools/smokecheck\n",
+		"go.mod":                            "module example\n\ngo 1.21\n",
+	}
+
+	for path, content := range files {
+		abs := filepath.Join(dir, path)
+		if err := os.MkdirAll(filepath.Dir(abs), 0755); err != nil {
+			t.Fatalf("mkdir %s: %v", filepath.Dir(abs), err)
+		}
+		if err := os.WriteFile(abs, []byte(content), 0644); err != nil {
+			t.Fatalf("write %s: %v", abs, err)
+		}
+	}
+	return dir
+}
+
 // createFullProject creates a temp dir with all required files passing doctor checks.
 func createFullProject(t *testing.T) string {
 	t.Helper()
@@ -218,5 +247,40 @@ func TestDoctorService_FindingsSorted(t *testing.T) {
 		if prev.Path > curr.Path || (prev.Path == curr.Path && prev.Code > curr.Code) {
 			t.Errorf("findings not sorted: [%d](%s,%s) > [%d](%s,%s)", i-1, prev.Path, prev.Code, i, curr.Path, curr.Code)
 		}
+	}
+}
+
+func TestDoctorService_LeanModePassing(t *testing.T) {
+	dir := createLeanProject(t)
+	svc := newDoctorSvc()
+
+	report := svc.RunWithMode(dir, "lean")
+
+	if !report.OK {
+		t.Errorf("expected OK=true for lean project, got findings: %+v", report.Findings)
+	}
+}
+
+func TestDoctorService_LeanModeRejectsMissingCore(t *testing.T) {
+	dir := createLeanProject(t)
+	os.Remove(filepath.Join(dir, "cmd/root.go"))
+
+	svc := newDoctorSvc()
+	report := svc.RunWithMode(dir, "lean")
+
+	if report.OK {
+		t.Error("expected OK=false when core file missing in lean mode")
+	}
+}
+
+func TestDoctorService_AutoDetectLeanMode(t *testing.T) {
+	dir := createLeanProject(t)
+	svc := newDoctorSvc()
+
+	// Auto-detect: no internal/app/ dir means lean mode
+	report := svc.Run(dir)
+
+	if !report.OK {
+		t.Errorf("expected auto-detect lean OK=true, got findings: %+v", report.Findings)
 	}
 }
