@@ -29,15 +29,55 @@ func TestScaffoldService_New(t *testing.T) {
 	expectedFiles := []string{
 		"main.go",
 		"cmd/root.go",
-		"service/container.go",
-		"dal/interfaces.go",
-		"operator/interfaces.go",
+		"Taskfile.yml",
+		"internal/io/output.go",
 	}
 
 	for _, f := range expectedFiles {
 		abs := filepath.Join(root, f)
 		if _, err := os.Stat(abs); os.IsNotExist(err) {
 			t.Errorf("expected file %s to exist", f)
+		}
+	}
+}
+
+func TestScaffoldService_NewLeanDefault(t *testing.T) {
+	svc := newScaffoldSvc()
+	dir := t.TempDir()
+
+	root, err := svc.New(dir, "leanapp", "example.com/leanapp", ScaffoldNewOptions{})
+	if err != nil {
+		t.Fatalf("New lean failed: %v", err)
+	}
+
+	// Core files should exist
+	for _, f := range []string{"main.go", "cmd/root.go", "Taskfile.yml", "internal/io/output.go"} {
+		if _, err := os.Stat(filepath.Join(root, f)); os.IsNotExist(err) {
+			t.Errorf("expected %s to exist in lean mode", f)
+		}
+	}
+
+	// DAG files should NOT exist
+	for _, f := range []string{"service/container.go", "dal/interfaces.go", "operator/interfaces.go", "internal/app/bootstrap.go", "internal/config/schema.go", "pkg/version/version.go"} {
+		if _, err := os.Stat(filepath.Join(root, f)); !os.IsNotExist(err) {
+			t.Errorf("expected %s to NOT exist in lean default", f)
+		}
+	}
+}
+
+func TestScaffoldService_NewFull(t *testing.T) {
+	svc := newScaffoldSvc()
+	dir := t.TempDir()
+
+	root, err := svc.New(dir, "fullapp", "example.com/fullapp", ScaffoldNewOptions{Full: true})
+	if err != nil {
+		t.Fatalf("New full failed: %v", err)
+	}
+
+	// All files should exist including DAG scaffold
+	for _, f := range []string{"main.go", "cmd/root.go", "service/container.go", "dal/interfaces.go", "operator/interfaces.go", "internal/app/bootstrap.go", "internal/config/schema.go", "pkg/version/version.go"} {
+		if _, err := os.Stat(filepath.Join(root, f)); os.IsNotExist(err) {
+			t.Errorf("expected %s to exist in full mode", f)
 		}
 	}
 }

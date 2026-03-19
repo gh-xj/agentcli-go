@@ -15,6 +15,7 @@ import (
 type ScaffoldNewOptions struct {
 	InExistingModule bool
 	Minimal          bool
+	Full             bool
 }
 
 // ScaffoldService handles project scaffolding using injected dependencies.
@@ -79,26 +80,29 @@ func (s *ScaffoldService) New(baseDir, name, module string, opts ScaffoldNewOpti
 	if opts.Minimal {
 		files["README.md"] = minimalReadmeTpl
 	} else {
-		files["internal/app/bootstrap.go"] = appBootstrapTpl
-		files["internal/app/lifecycle.go"] = appLifecycleTpl
-		files["internal/app/errors.go"] = appErrorsTpl
-		files["internal/config/schema.go"] = configSchemaTpl
-		files["internal/config/load.go"] = configLoadTpl
+		// Lean core: functional CLI + CI infrastructure
 		files["internal/io/output.go"] = outputTpl
 		files["internal/tools/smokecheck/main.go"] = smokeCheckTpl
-		files["pkg/version/version.go"] = versionTpl
 		files["test/e2e/cli_test.go"] = e2eTestTpl
 		files["test/smoke/version.schema.json"] = smokeSchemaTpl
 		files["Taskfile.yml"] = taskfileTpl
 		files["README.md"] = readmeTpl
 
-		// DAG scaffold files
-		files["service/container.go"] = scaffoldContainerTpl
-		files["service/wire.go"] = scaffoldWireTpl
-		files["dal/interfaces.go"] = scaffoldDALInterfacesTpl
-		files["dal/filesystem.go"] = scaffoldDALFilesystemTpl
-		files["operator/interfaces.go"] = scaffoldOperatorInterfacesTpl
-		files["operator/example_op.go"] = scaffoldOperatorExampleTpl
+		if opts.Full {
+			// DAG scaffold: app lifecycle, config, version, DI, DAL, operator
+			files["internal/app/bootstrap.go"] = appBootstrapTpl
+			files["internal/app/lifecycle.go"] = appLifecycleTpl
+			files["internal/app/errors.go"] = appErrorsTpl
+			files["internal/config/schema.go"] = configSchemaTpl
+			files["internal/config/load.go"] = configLoadTpl
+			files["pkg/version/version.go"] = versionTpl
+			files["service/container.go"] = scaffoldContainerTpl
+			files["service/wire.go"] = scaffoldWireTpl
+			files["dal/interfaces.go"] = scaffoldDALInterfacesTpl
+			files["dal/filesystem.go"] = scaffoldDALFilesystemTpl
+			files["operator/interfaces.go"] = scaffoldOperatorInterfacesTpl
+			files["operator/example_op.go"] = scaffoldOperatorExampleTpl
+		}
 	}
 	if writeGoMod {
 		files["go.mod"] = goModTpl
