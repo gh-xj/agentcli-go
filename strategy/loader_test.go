@@ -57,7 +57,7 @@ func TestBootstrapCreatesDefaults(t *testing.T) {
 	}
 
 	// Verify key files exist
-	for _, name := range []string{"strategy.md", "schema.md", "slot.md", "storage.yaml", "transitions.yaml", "risk.yaml", "routing.yaml", "budget.yaml", "hooks.yaml"} {
+	for _, name := range []string{"strategy.md", "schema.md", "slot.md", "slot.yaml", "storage.yaml", "transitions.yaml", "risk.yaml", "routing.yaml", "budget.yaml", "hooks.yaml"} {
 		path := filepath.Join(tmp, ".agentops", name)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			t.Errorf("expected %s to exist", name)
