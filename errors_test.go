@@ -29,3 +29,27 @@ func TestCLIErrorWrap(t *testing.T) {
 		t.Fatalf("exit code mismatch: %d", got)
 	}
 }
+
+func TestAgentopsExitCodes(t *testing.T) {
+	codes := []struct {
+		name string
+		code int
+		want int
+	}{
+		{"StrategyMissing", ExitStrategyMissing, 10},
+		{"TransitionDenied", ExitTransitionDenied, 11},
+		{"WorkerFailed", ExitWorkerFailed, 12},
+		{"ValidationFailed", ExitValidationFailed, 13},
+	}
+	for _, tc := range codes {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.code != tc.want {
+				t.Fatalf("expected %d, got %d", tc.want, tc.code)
+			}
+			err := NewCLIError(tc.code, tc.name, "test", nil)
+			if got := ResolveExitCode(err); got != tc.want {
+				t.Fatalf("ResolveExitCode: expected %d, got %d", tc.want, got)
+			}
+		})
+	}
+}

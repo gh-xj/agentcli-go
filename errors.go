@@ -11,6 +11,11 @@ const (
 	ExitUsage               = 2
 	ExitPreflightDependency = 3
 	ExitRuntimeExternal     = 4
+
+	ExitStrategyMissing  = 10 // no .agentops/ found
+	ExitTransitionDenied = 11 // invalid state transition
+	ExitWorkerFailed     = 12 // worker returned error
+	ExitValidationFailed = 13 // case/strategy validation failed
 )
 
 // ExitCoder describes errors that can provide a process exit code.
