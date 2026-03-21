@@ -63,3 +63,29 @@ type Syncer interface {
 type Transitioner interface {
 	Transition(ctx *agentops.AppContext, id string, action string) (*Record, error)
 }
+
+// Doctor is an optional interface for resources that support health checks.
+type Doctor interface {
+	Doctor(ctx *agentops.AppContext) ([]DoctorCheck, error)
+}
+
+// Pruner is an optional interface for resources that support cleanup of stale entries.
+type Pruner interface {
+	Prune(ctx *agentops.AppContext, confirm bool) ([]PruneResult, error)
+}
+
+// DoctorCheck represents a single health check finding.
+type DoctorCheck struct {
+	Name     string `json:"name"`
+	Status   string `json:"status"`   // ok, warn, err
+	Message  string `json:"message"`
+	Severity string `json:"severity"`
+}
+
+// PruneResult represents a single cleanup action taken or proposed.
+type PruneResult struct {
+	Name   string `json:"name"`
+	Path   string `json:"path"`
+	Action string `json:"action"` // removed, would_remove, skipped
+	Reason string `json:"reason"`
+}
