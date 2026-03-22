@@ -17,7 +17,7 @@ Goal: enforce one deterministic quality protocol using this repository's loop su
 Run:
 
 ```bash
-agentcli loop doctor --repo-root .
+agentops loop doctor --repo-root .
 ```
 
 - If this fails, fix missing repo scaffolding before quality gates.
@@ -26,7 +26,7 @@ agentcli loop doctor --repo-root .
 ## Step 2 — Run baseline quality gate
 
 ```bash
-agentcli loop quality --repo-root .
+agentops loop quality --repo-root .
 ```
 
 Capture pass/fail and artifact paths from `.docs/onboarding-loop/`.
@@ -60,7 +60,7 @@ Create `configs/loop-profiles.json`:
 Verify profile loading:
 
 ```bash
-agentcli loop profiles --repo-root .
+agentops loop profiles --repo-root .
 ```
 
 ## Step 4 — Use `quality` profile for CI-friendly gates
@@ -68,7 +68,7 @@ agentcli loop profiles --repo-root .
 In CI or local pre-merge checks:
 
 ```bash
-agentcli loop quality --repo-root .
+agentops loop quality --repo-root .
 ```
 
 This loads built-in defaults and repository override profiles, so teams use the same policy in all environments.
@@ -76,7 +76,7 @@ This loads built-in defaults and repository override profiles, so teams use the 
 For low-noise local checks, run:
 
 ```bash
-agentcli loop lean --repo-root .
+agentops loop lean --repo-root .
 ```
 
 ## Step 5 — Enforce behavior regression gate
@@ -84,13 +84,13 @@ agentcli loop lean --repo-root .
 Run:
 
 ```bash
-agentcli loop regression --repo-root .
+agentops loop regression --repo-root .
 ```
 
 If baseline is not initialized yet:
 
 ```bash
-agentcli loop regression --repo-root . --write-baseline
+agentops loop regression --repo-root . --write-baseline
 ```
 
 ## Step 6 — Investigate failures with lab
@@ -99,15 +99,15 @@ When a quality pass fails:
 
 - Replay one iteration:
   ```bash
-  agentcli loop lab replay --repo-root . --run-id <run-id> --iter 1 --threshold 9.0
+  agentops loop lab replay --repo-root . --run-id <run-id> --iter 1 --threshold 9.0
   ```
 - Compare two runs:
   ```bash
-  agentcli loop lab compare --repo-root . --run-a <run-id-a> --run-b <run-id-b> --format md --out .docs/onboarding-loop/compare/run-a-vs-run-b.md
+  agentops loop lab compare --repo-root . --run-a <run-id-a> --run-b <run-id-b> --format md --out .docs/onboarding-loop/compare/run-a-vs-run-b.md
   ```
 - Run committee-style rechecks with explicit profiles:
   ```bash
-  agentcli loop lab judge --repo-root . --mode committee --max-iterations 2 --verbose-artifacts
+  agentops loop lab judge --repo-root . --mode committee --max-iterations 2 --verbose-artifacts
   ```
 
 ## Step 7 — Optional repair cycle
@@ -115,7 +115,7 @@ When a quality pass fails:
 For iterative fixes:
 
 ```bash
-agentcli loop autofix --repo-root . --threshold 9.0 --max-iterations 3
+agentops loop autofix --repo-root . --threshold 9.0 --max-iterations 3
 ```
 
 Re-run `doctor`, `quality`, then `judge` to confirm regression stabilization.

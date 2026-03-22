@@ -23,11 +23,11 @@ func main() {
 }
 
 func run(repoRoot string) error {
-	helpOut, err := cliHelp(repoRoot)
+	leanSig, err := loopUsage(repoRoot, "loop")
 	if err != nil {
 		return err
 	}
-	leanSig, labSig, err := extractLoopSignatures(helpOut)
+	labSig, err := loopUsage(repoRoot, "loop", "lab")
 	if err != nil {
 		return err
 	}
@@ -57,25 +57,29 @@ func run(repoRoot string) error {
 	return nil
 }
 
-func cliHelp(repoRoot string) (string, error) {
-	cmd := exec.Command("go", "run", "./cmd/agentcli", "--help")
+func loopUsage(repoRoot string, args ...string) (string, error) {
+	cmdArgs := append([]string{"run", "./cmd/agentops"}, args...)
+	cmd := exec.Command("go", cmdArgs...)
 	cmd.Dir = repoRoot
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &out
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("run help command: %w\n%s", err, out.String())
+	err := cmd.Run()
+	usage, usageErr := extractUsage(out.String())
+	if usageErr == nil {
+		return usage, nil
 	}
-	return out.String(), nil
+	if err != nil {
+		return "", fmt.Errorf("run usage command: %w\n%s", err, out.String())
+	}
+	return "", usageErr
 }
 
-func extractLoopSignatures(helpText string) (string, string, error) {
-	leanRe := regexp.MustCompile(`agentcli loop \[[^\]]+\]`)
-	labRe := regexp.MustCompile(`agentcli loop lab \[[^\]]+\]`)
-	lean := strings.TrimSpace(leanRe.FindString(helpText))
-	lab := strings.TrimSpace(labRe.FindString(helpText))
-	if lean == "" || lab == "" {
-		return "", "", fmt.Errorf("could not extract loop command signatures from CLI help")
+func extractUsage(output string) (string, error) {
+	usageRe := regexp.MustCompile(`usage: (agentops loop[^\n]+)`)
+	match := usageRe.FindStringSubmatch(output)
+	if len(match) < 2 {
+		return "", fmt.Errorf("could not extract loop command signature from CLI output")
 	}
-	return lean, lab, nil
+	return strings.TrimSpace(match[1]), nil
 }

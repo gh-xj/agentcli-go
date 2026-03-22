@@ -1,4 +1,4 @@
-# Agents Guide (agentcli-go)
+# Agents Guide (agentops)
 
 This file is the quick entrypoint for coding agents working in this repository.
 
@@ -7,9 +7,9 @@ This file is the quick entrypoint for coding agents working in this repository.
 - Use `task ci` as the canonical CI contract.
 - Use `task verify` for local aggregate verification.
 - Preserve the loop command surface:
-  - `agentcli loop [global flags] [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [command flags]`
-  - `agentcli loop lab [compare|replay|run|judge|autofix]`
-- Do not use `agentcli loop all` (not supported).
+  - `agentops loop [global flags] [run|judge|autofix|doctor|quality|profiles|profile|<profile>|regression|capabilities|lab] [command flags]`
+  - `agentops loop lab [compare|replay|run|judge|autofix]`
+- Do not use `agentops loop all` (not supported).
 
 ## Skill Health Checks
 
@@ -44,11 +44,11 @@ Use this flow for internal failure feedback routing:
 
 ## Install & Install Verification
 
-- If `agentcli` is not installed in the environment:
-  - `go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1`
-  - `which agentcli`
-  - `agentcli --version`
-  - `agentcli --help`
+- If `agentops` is not installed in the environment:
+  - `go install github.com/gh-xj/agentops/cmd/agentops@v0.2.1`
+  - `which agentops`
+  - `agentops --version`
+  - `agentops --help`
 
 ## Copy-paste onboarding script (mandatory for agents)
 
@@ -56,7 +56,7 @@ Use this in first contact when onboarding to this repo:
 
 ```text
 I am onboarding to use this repository as an agent skill.
-Project URL: https://github.com/gh-xj/agentcli-go
+Project URL: https://github.com/gh-xj/agentops
 
 1) Read in this order:
    - CLAUDE.md
@@ -65,14 +65,14 @@ Project URL: https://github.com/gh-xj/agentcli-go
    - skills/agentcli-go/SKILL.md
    - skills/verification-loop/SKILL.md
 2) Validate installation:
-   - which agentcli
-   - agentcli --version
-   - agentcli --help
+   - which agentops
+   - agentops --version
+   - agentops --help
 3) Run baseline checks:
    - task ci
    - task verify
 4) For harness decisions:
-   - do not run unsupported command forms (for example: `agentcli loop all`)
+   - do not run unsupported command forms (for example: `agentops loop all`)
 5) Document changes with routing:
    - user-facing -> README.md
    - agent workflow -> agents.md / related skill docs
@@ -97,16 +97,16 @@ Run in this order:
 
 ```bash
 task ci
-agentcli loop doctor --repo-root .
-agentcli loop lean --repo-root .
-agentcli loop quality --repo-root .
-agentcli loop regression --repo-root .
+agentops loop doctor --repo-root .
+agentops loop lean --repo-root .
+agentops loop quality --repo-root .
+agentops loop regression --repo-root .
 ```
 
 For optional auto-fix iteration:
 
 ```bash
-agentcli loop autofix --repo-root . --threshold 9.0 --max-iterations 3
+agentops loop autofix --repo-root . --threshold 9.0 --max-iterations 3
 ```
 
 ## Documentation convention reminder

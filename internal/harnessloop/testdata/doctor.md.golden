@@ -10,4 +10,4 @@
 
 ## Suggestions
 
-- Lean path ready. Use 'agentcli loop lean' for daily checks and 'agentcli loop quality' for skill package checks.
+- Lean path ready. Use 'agentops loop lean' for daily checks and 'agentops loop quality' for skill package checks.

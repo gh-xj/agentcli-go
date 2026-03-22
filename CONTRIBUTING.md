@@ -1,6 +1,6 @@
-# Contributing to agentcli-go
+# Contributing to agentops
 
-Thanks for improving agentcli-go.
+Thanks for improving agentops.
 
 ## Repository setup
 
@@ -8,7 +8,7 @@ Thanks for improving agentcli-go.
 - Install the CLI helper if you need scaffold flows:
 
 ```bash
-go install github.com/gh-xj/agentcli-go/cmd/agentcli@v0.2.1
+go install github.com/gh-xj/agentops/cmd/agentops@v0.2.1
 ```
 
 ## Core checks
@@ -23,8 +23,8 @@ task verify
 Optional deep checks:
 
 ```bash
-agentcli loop doctor --repo-root .
-agentcli loop quality --repo-root . --threshold 9.0 --max-iterations 1
+agentops loop doctor --repo-root .
+agentops loop quality --repo-root . --threshold 9.0 --max-iterations 1
 ```
 
 ## PR expectations
@@ -42,6 +42,7 @@ agentcli loop quality --repo-root . --threshold 9.0 --max-iterations 1
 ## Feedback
 
 When reporting issues, include:
+
 - What command was run
 - Input parameters
 - Expected vs actual output

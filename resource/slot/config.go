@@ -10,11 +10,11 @@ import (
 
 // SlotConfig represents the parsed .agentops/slot.yaml configuration.
 type SlotConfig struct {
-	Slots          []string `yaml:"slots"`            // pre-declared names (optional)
-	BaseBranch     string   `yaml:"base_branch"`      // default: main
-	WorktreePrefix string   `yaml:"worktree_prefix"`  // default: repo dirname
-	BranchPrefix   string   `yaml:"branch_prefix"`    // default: slot
-	MarkerFile     string   `yaml:"marker_file"`      // default: .slot
+	Slots          []string `yaml:"slots"`           // pre-declared names (optional)
+	BaseBranch     string   `yaml:"base_branch"`     // default: main
+	WorktreePrefix string   `yaml:"worktree_prefix"` // default: repo dirname
+	BranchPrefix   string   `yaml:"branch_prefix"`   // default: slot
+	MarkerFile     string   `yaml:"marker_file"`     // default: .slot
 }
 
 // SlotPaths holds the computed paths for a single worktree slot.

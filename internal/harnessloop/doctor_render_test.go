@@ -12,7 +12,7 @@ func TestRenderDoctorMarkdownGolden(t *testing.T) {
 		LeanReady:        true,
 		LabFeaturesReady: false,
 		Findings:         nil,
-		Suggestions:      []string{"Lean path ready. Use 'agentcli loop lean' for daily checks and 'agentcli loop quality' for skill package checks."},
+		Suggestions:      []string{"Lean path ready. Use 'agentops loop lean' for daily checks and 'agentops loop quality' for skill package checks."},
 		ReviewPath:       ".docs/onboarding-loop/maintainer/latest-review.md",
 	}
 	got := RenderDoctorMarkdown(r)

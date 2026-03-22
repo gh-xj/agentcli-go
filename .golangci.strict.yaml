@@ -7,11 +7,73 @@ run:
 linters:
   default: none
   enable:
+    - depguard
     - govet
     - ineffassign
     - unused
     - staticcheck
     - errcheck
+  settings:
+    depguard:
+      rules:
+        cobrax-layer:
+          list-mode: lax
+          files:
+            - "cobrax/**/*.go"
+            - "!**/*_test.go"
+          deny:
+            - pkg: "github.com/gh-xj/agentops/cmd"
+              desc: "cobrax must stay reusable and must not depend on CLI entrypoints"
+            - pkg: "github.com/gh-xj/agentops/dal"
+              desc: "cobrax renders resource data and should not depend on storage adapters"
+            - pkg: "github.com/gh-xj/agentops/internal"
+              desc: "cobrax must not depend on internal runtime packages"
+            - pkg: "github.com/gh-xj/agentops/strategy"
+              desc: "cobrax should receive strategy-derived data through resources, not import strategy directly"
+        dal-layer:
+          list-mode: lax
+          files:
+            - "dal/**/*.go"
+            - "!**/*_test.go"
+          deny:
+            - pkg: "github.com/gh-xj/agentops/cmd"
+              desc: "dal must not depend on CLI entrypoints"
+            - pkg: "github.com/gh-xj/agentops/cobrax"
+              desc: "dal must not depend on command rendering"
+            - pkg: "github.com/gh-xj/agentops/internal"
+              desc: "dal must stay reusable outside internal harness packages"
+            - pkg: "github.com/gh-xj/agentops/resource"
+              desc: "dal is a lower layer and must not depend on resource packages"
+            - pkg: "github.com/gh-xj/agentops/strategy"
+              desc: "dal must not depend on strategy loading"
+        resource-layer:
+          list-mode: lax
+          files:
+            - "resource/**/*.go"
+            - "!**/*_test.go"
+          deny:
+            - pkg: "github.com/gh-xj/agentops/cmd"
+              desc: "resource implementations must not depend on CLI entrypoints"
+            - pkg: "github.com/gh-xj/agentops/cobrax"
+              desc: "resource implementations must not depend on command rendering"
+            - pkg: "github.com/gh-xj/agentops/internal"
+              desc: "resource implementations must stay decoupled from internal harness packages"
+            - pkg: "github.com/gh-xj/agentops/tools/harness"
+              desc: "resource implementations must not depend on harness execution packages"
+        strategy-layer:
+          list-mode: lax
+          files:
+            - "strategy/**/*.go"
+            - "!**/*_test.go"
+          deny:
+            - pkg: "github.com/gh-xj/agentops/cmd"
+              desc: "strategy loading must not depend on CLI entrypoints"
+            - pkg: "github.com/gh-xj/agentops/cobrax"
+              desc: "strategy loading must not depend on command rendering"
+            - pkg: "github.com/gh-xj/agentops/internal"
+              desc: "strategy loading must stay reusable outside internal harness packages"
+            - pkg: "github.com/gh-xj/agentops/resource"
+              desc: "strategy loading must not depend on resource implementations"
 
 issues:
   max-issues-per-linter: 0

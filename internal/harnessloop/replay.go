@@ -31,7 +31,7 @@ func ReplayIteration(repoRoot, runID string, iteration int, threshold float64) (
 	ctxPath := filepath.Join(repoRoot, ".docs", "onboarding-loop", "runs", runID, fmt.Sprintf("iter-%02d", iteration), "planner-context.json")
 	raw, err := os.ReadFile(ctxPath)
 	if err != nil {
-		return ReplayReport{}, fmt.Errorf("replay artifacts not found for run %s iter %d; run with 'agentcli loop lab ... --verbose-artifacts' to enable replay", runID, iteration)
+		return ReplayReport{}, fmt.Errorf("replay artifacts not found for run %s iter %d; run with 'agentops loop lab ... --verbose-artifacts' to enable replay", runID, iteration)
 	}
 	var ctx replayContext
 	if err := json.Unmarshal(raw, &ctx); err != nil {

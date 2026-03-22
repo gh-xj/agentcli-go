@@ -8,7 +8,7 @@ version: 1.0
 
 ## Why this skill exists
 
-It turns `agentcli loop` into a low-friction project standard: one discoverable profile entrypoint, predictable quality gates, and repeatable failure analysis.
+It turns `agentops loop` into a low-friction project standard: one discoverable profile entrypoint, predictable quality gates, and repeatable failure analysis.
 
 ## In scope
 
@@ -19,16 +19,16 @@ It turns `agentcli loop` into a low-friction project standard: one discoverable 
 ## Core protocol
 
 1. Confirm setup and baseline:
-   - `agentcli loop doctor --repo-root .`
+   - `agentops loop doctor --repo-root .`
 2. Run default gate:
-   - `agentcli loop quality --repo-root .`
+   - `agentops loop quality --repo-root .`
 3. Surface policy:
-   - `agentcli loop profiles --repo-root .`
+   - `agentops loop profiles --repo-root .`
 4. Run behavior regression gate:
-   - `agentcli loop regression --repo-root .`
+   - `agentops loop regression --repo-root .`
 5. Investigate failures:
-   - `agentcli loop lab replay --repo-root . --run-id <run-id> --iter 1`
-   - `agentcli loop lab compare --repo-root . --run-a <run-id-a> --run-b <run-id-b>`
+   - `agentops loop lab replay --repo-root . --run-id <run-id> --iter 1`
+   - `agentops loop lab compare --repo-root . --run-a <run-id-a> --run-b <run-id-b>`
 
 ## Policy source of truth
 
@@ -43,13 +43,13 @@ Avoid changing policy flags across scripts; update the profile JSON instead.
 
 | Goal | Command |
 | --- | --- |
-| Show active policy | `agentcli loop profiles --repo-root .` |
-| Execute strict gate | `agentcli loop quality --repo-root .` |
-| Execute local low-noise checks | `agentcli loop lean --repo-root .` |
-| Execute behavior regression gate | `agentcli loop regression --repo-root .` |
-| Refresh regression baseline after intentional behavior change | `agentcli loop regression --repo-root . --write-baseline` |
-| Investigate regressions | `agentcli loop lab replay ...` / `agentcli loop lab compare ...` |
-| Run policy experiment | `agentcli loop lab run --repo-root . --mode committee --role-config <path> --max-iterations 1` |
+| Show active policy | `agentops loop profiles --repo-root .` |
+| Execute strict gate | `agentops loop quality --repo-root .` |
+| Execute local low-noise checks | `agentops loop lean --repo-root .` |
+| Execute behavior regression gate | `agentops loop regression --repo-root .` |
+| Refresh regression baseline after intentional behavior change | `agentops loop regression --repo-root . --write-baseline` |
+| Investigate regressions | `agentops loop lab replay ...` / `agentops loop lab compare ...` |
+| Run policy experiment | `agentops loop lab run --repo-root . --mode committee --role-config <path> --max-iterations 1` |
 
 ## Case study
 

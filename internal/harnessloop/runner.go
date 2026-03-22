@@ -16,15 +16,15 @@ func BuildLocalAgentCLIBinary(repoRoot string) (string, error) {
 		return "", err
 	}
 	binDir := filepath.Join(absRoot, ".docs", "onboarding-loop", "bin")
-	if err := os.MkdirAll(binDir, 0755); err != nil {
+	if err := os.MkdirAll(binDir, 0o755); err != nil {
 		return "", err
 	}
-	binPath := filepath.Join(binDir, "agentcli-loop")
-	cmd := exec.Command("go", "build", "-o", binPath, "./cmd/agentcli")
+	binPath := filepath.Join(binDir, "agentops-loop")
+	cmd := exec.Command("go", "build", "-o", binPath, "./cmd/agentops")
 	cmd.Dir = absRoot
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("build agentcli binary: %w\n%s", err, string(out))
+		return "", fmt.Errorf("build agentops binary: %w\n%s", err, string(out))
 	}
 	return binPath, nil
 }
@@ -32,7 +32,7 @@ func BuildLocalAgentCLIBinary(repoRoot string) (string, error) {
 func RunScenario(s Scenario) (ScenarioResult, error) {
 	workDir := s.WorkDir
 	if strings.TrimSpace(workDir) == "" {
-		tmp, err := os.MkdirTemp("", "agentcli-loop-")
+		tmp, err := os.MkdirTemp("", "agentops-loop-")
 		if err != nil {
 			return ScenarioResult{}, err
 		}

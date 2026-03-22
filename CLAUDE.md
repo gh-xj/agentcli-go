@@ -1,102 +1,63 @@
-# agentcli-go
+# agentops
 
-Shared Go CLI helpers and framework modules for personal projects.
+Resource-based agent operations toolkit and scaffold CLI.
 
 ## Module
 
-`github.com/gh-xj/agentcli-go` — import as `"github.com/gh-xj/agentcli-go"`
+`github.com/gh-xj/agentops` — import as `"github.com/gh-xj/agentops"`
 
-## Architecture
+## Architecture Contract
 
-DAG-layered: `cmd/ (handler) → service → operator → dal`, with root package as model layer.
+Current architecture is resource-based, not the older DAG `service/operator` layout.
 
-### Root Package (Model Layer)
-| File | Purpose |
-|------|---------|
-| `core_context.go` | `AppContext`, `IOStreams`, `AppMeta` — shared runtime contracts |
-| `lifecycle.go` | `Hook` interface — preflight/postflight contract |
-| `errors.go` | `CLIError`, `ExitCoder`, `ResolveExitCode` — typed error and exit mapping |
-
-### DAL Layer (`dal/`)
-| File | Purpose |
-|------|---------|
-| `dal/interfaces.go` | `FileSystem`, `Executor`, `Logger` interfaces + `DirEntry` |
-| `dal/filesystem.go` | `FileSystemImpl` — real filesystem operations |
-| `dal/exec.go` | `ExecutorImpl` — command execution, PATH lookup |
-| `dal/logger.go` | `LoggerImpl` — zerolog setup |
-
-### Operator Layer (`operator/`)
-| File | Purpose |
-|------|---------|
-| `operator/interfaces.go` | `TemplateOperator`, `ComplianceOperator`, `ArgsOperator` |
-| `operator/template_op.go` | Template rendering, go.mod parsing, parent module resolution |
-| `operator/compliance_op.go` | File existence/content checks, command name validation |
-| `operator/args_op.go` | `--key value` CLI argument parsing |
-
-### Service Layer (`service/`)
-| File | Purpose |
-|------|---------|
-| `service/container.go` | Wire DI container with `Get()` singleton |
-| `service/wire.go` | Wire provider set binding all layers |
-| `service/scaffold.go` | `ScaffoldService` — project generation + `AddCommand` |
-| `service/doctor.go` | `DoctorService` — compliance checks with DAG validation |
-| `service/lifecycle.go` | `LifecycleService` — preflight/run/postflight orchestration |
-| `service/templates.go` | All scaffold template constants |
-
-### Adapters & CLI
-| File | Purpose |
-|------|---------|
-| `cobrax/cobrax.go` | Cobra runtime adapter with standardized persistent flags and exit-code mapping |
-| `configx/configx.go` | Deterministic config loading with precedence (`Defaults < File < Env < Flags`) |
-| `cmd/agentcli/main.go` | `agentcli` scaffold CLI entrypoint (`new`, `add command`, `doctor`) |
-| `internal/tools/schemacheck/main.go` | JSON contract validator for schema-based CI checks |
-| `schemas/*.schema.json` | Versioned JSON contracts for framework outputs |
-
-### Dependency Direction (enforced by Go imports)
+```text
+cmd/agentops -> cobrax, resource/*, strategy, dal, internal loop adapters
+cobrax       -> resource
+resource/*   -> resource, dal, strategy, root contracts
+strategy     -> stdlib + yaml
+dal          -> stdlib
+root package -> shared contracts and report types only
+internal/* + tools/harness -> verification / loop infrastructure only
 ```
-cmd/agentcli → service → operator → dal
-                 ↓           ↓        ↓
-              root (model: AppContext, Hook, CLIError)
-```
-- `dal` imports root only
-- `operator` imports root + dal
-- `service` imports root + operator + dal
-- `cmd` imports service + root
 
-### Deprecated Root Functions
-Root-level functions (`ScaffoldNew`, `RunCommand`, `FileExists`, `ParseArgs`, `InitLogger`, etc.) are deprecated. Use DAG layer equivalents via `service.Get()`.
+Rules:
 
-## Rules
+- Root package files stay as shared contracts, exit codes, and report types.
+- `resource/*` must not import `cmd/`, `cobrax/`, or internal harness packages.
+- `cobrax/` must stay reusable and must not depend on `dal/`, `strategy/`, `cmd/`, or `internal/`.
+- `dal/` and `strategy/` are lower-level packages and must not depend on higher layers.
+- The live CLI surface is `agentops`; do not add new `agentcli` references.
 
-### API Design
-- Root package = shared contracts only (types, interfaces, error codes)
-- New functionality goes in the appropriate DAG layer (dal, operator, or service)
-- All exported types/functions use PascalCase
-- Operators return errors (never `log.Fatal`)
+## Commands Cheat Sheet
 
-### Dependencies
-- `github.com/rs/zerolog` — structured logging
-- `github.com/samber/lo` — verbose flag detection via `lo.Contains`
-- `github.com/spf13/cobra` — standardized command runtime in `cobrax`
-- `github.com/google/wire` — compile-time dependency injection
-- Keep dependencies minimal and justified.
+- Show CLI help: `go run ./cmd/agentops --help`
+- Run unit tests: `go test ./...`
+- Build packages: `go build ./...`
+- Run docs drift check: `task docs:check`
+- Run canonical CI contract: `task ci`
+- Run local aggregate verification: `task verify`
+- Inspect loop capabilities: `go run ./cmd/agentops loop --format json capabilities`
+- Run behavior regression: `go run ./cmd/agentops loop regression --repo-root .`
+- Refresh behavior baseline after intentional loop output changes: `go run ./cmd/agentops loop regression --repo-root . --write-baseline`
+- Install local hook: `task hooks:install`
 
-### Adding Functions
-- Only add helpers that are duplicated across 2+ CLI projects
-- Follow existing patterns: short, focused, well-named
-- No business logic — only generic utilities
+## Documentation Routing
 
-### Versioning
-- Tag releases as `v0.x.y` (pre-1.0)
+- `README.md`: customer-facing project description and usage.
+- `agents.md`: agent onboarding and operating workflow.
+- `CLAUDE.md`: durable repo rules and architecture contract.
+- `skills/*/SKILL.md`: skill-specific command and workflow guidance.
 
-## Documentation Conventions
+## Non-Negotiable Rules
 
-- Route updates according to `docs/documentation-conventions.md`.
-- Avoid duplicating detailed onboarding or harness instructions in multiple top-level docs.
-- Keep user-facing, agent-facing, skill-facing, and durable rules in their designated documents.
+- Keep the verification surface aligned with the live `agentops` CLI.
+- Do not check in generated root binaries such as `agentops`.
+- Keep boundary enforcement in `.golangci.yaml`; prose-only architecture rules are insufficient.
+- When behavior changes intentionally, update docs and the regression baseline in the same change.
+- Do not put agent-only verification flow in `README.md`; route it to `agents.md` or skill docs.
 
-## AgentCLI Harness Learnings (2026-02-23)
-- In this repo, `agentcli loop all` is not a supported command; valid actions are `run|judge|autofix|doctor|quality`, and `lab` for advanced actions.
-- Use `task ci` as the canonical CI gate and `task verify` as the local aggregate verification entrypoint.
-- Keep `docs:check` aligned: `internal/tools/doccheck` expects `skills/verification-loop/SKILL.md`, so this file must exist and contain current loop command signatures.
-- In repo docs/scripts, prefer install/verification commands that are actually available in-repo (`go install ...`, `which agentcli`, `agentcli --version`, `agentcli --help`) and avoid references to missing external helper scripts.
+## Verification Gates
+
+- Before claiming completion, run `task verify`.
+- If loop output changed intentionally, run the regression baseline write command and keep `testdata/regression/loop-quality.behavior-baseline.json` in sync.
+- `task verify` is the local aggregate gate; `task ci` is the CI contract.

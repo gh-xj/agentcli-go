@@ -105,12 +105,12 @@ tasks:
   regression:behavior:
     desc: Run behavior-only regression gate against committed baseline
     cmds:
-      - go run ./cmd/agentcli loop regression --repo-root .
+      - go run ./cmd/agentops loop regression --repo-root .
 
   core:build:
     desc: Ensure core-only agentcli build compiles without optional loop/harness features
     cmds:
-      - go build -tags agentcli_core ./cmd/agentcli
+      - go build -tags agentcli_core ./cmd/agentops
 
   ci:
     desc: Canonical CI contract command
@@ -128,7 +128,7 @@ tasks:
     desc: Required checks before tag publish
     deps: [ci, core:build]
     cmds:
-      - go run ./cmd/agentcli --help >/dev/null 2>&1
+      - go run ./cmd/agentops --help >/dev/null 2>&1
       - echo "release gate checks passed"
 
   release:publish:

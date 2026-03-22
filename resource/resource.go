@@ -77,7 +77,7 @@ type Pruner interface {
 // DoctorCheck represents a single health check finding.
 type DoctorCheck struct {
 	Name     string `json:"name"`
-	Status   string `json:"status"`   // ok, warn, err
+	Status   string `json:"status"` // ok, warn, err
 	Message  string `json:"message"`
 	Severity string `json:"severity"`
 }

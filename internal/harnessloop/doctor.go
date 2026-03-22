@@ -25,10 +25,10 @@ func LoopDoctor(repoRoot string) DoctorReport {
 		suggestions = append(suggestions, "Fix onboarding install prompt issues before relying on loop scores.")
 	}
 	if !labReady {
-		suggestions = append(suggestions, "Run 'agentcli loop lab run --verbose-artifacts --max-iterations 1' to enable replay/forensics.")
+		suggestions = append(suggestions, "Run 'agentops loop lab run --verbose-artifacts --max-iterations 1' to enable replay/forensics.")
 	}
 	if len(suggestions) == 0 {
-		suggestions = append(suggestions, "Lean path ready. Use 'agentcli loop lean' for daily checks and 'agentcli loop quality' for skill package checks.")
+		suggestions = append(suggestions, "Lean path ready. Use 'agentops loop lean' for daily checks and 'agentops loop quality' for skill package checks.")
 	}
 	return DoctorReport{
 		SchemaVersion:    "v1",

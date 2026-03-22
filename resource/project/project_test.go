@@ -52,10 +52,10 @@ func (f *realFS) BaseName(path string) string {
 // realExec implements dal.Executor using real os/exec.
 type realExec struct{}
 
-func (e *realExec) Run(name string, args ...string) (string, error)             { return "", nil }
-func (e *realExec) RunInDir(dir, name string, args ...string) (string, error)   { return "", nil }
-func (e *realExec) RunOsascript(script string) string                           { return "" }
-func (e *realExec) Which(cmd string) bool                                       { return false }
+func (e *realExec) Run(name string, args ...string) (string, error)           { return "", nil }
+func (e *realExec) RunInDir(dir, name string, args ...string) (string, error) { return "", nil }
+func (e *realExec) RunOsascript(script string) string                         { return "" }
+func (e *realExec) Which(cmd string) bool                                     { return false }
 
 func newTestResource(t *testing.T) (*ProjectResource, *agentops.AppContext) {
 	t.Helper()

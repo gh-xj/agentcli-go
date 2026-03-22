@@ -2,7 +2,7 @@ package strategy
 
 // Strategy holds the fully loaded .agentops/ configuration.
 type Strategy struct {
-	Root           string        // absolute path to project root (parent of .agentops/)
+	Root           string // absolute path to project root (parent of .agentops/)
 	Storage        StorageConfig
 	Transitions    TransitionsConfig
 	Risk           map[string]any

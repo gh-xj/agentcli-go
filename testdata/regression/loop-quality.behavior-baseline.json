@@ -2,13 +2,13 @@
   "schema_version": "v1",
   "kind": "loop_behavior",
   "profile": "quality",
-  "generated_at": "2026-02-24T11:01:23.141992Z",
+  "generated_at": "2026-03-22T00:03:17.480883Z",
   "snapshot": {
     "mode": "committee",
     "iterations": 1,
     "scenario": {
       "name": "default-onboarding",
-      "ok": true,
+      "ok": false,
       "steps": [
         {
           "name": "scaffold",
@@ -16,24 +16,22 @@
         },
         {
           "name": "add-command",
-          "exit_code": 0
-        },
-        {
-          "name": "doctor",
-          "exit_code": 0
-        },
-        {
-          "name": "verify",
-          "exit_code": 0
+          "exit_code": 2
         }
       ]
     },
-    "findings": [],
+    "findings": [
+      {
+        "code": "step_failed",
+        "severity": "high",
+        "source": "add-command"
+      }
+    ],
     "judge": {
       "threshold": 9,
-      "score": 10,
-      "pass": true,
-      "hard_failures": 0,
+      "score": 0,
+      "pass": false,
+      "hard_failures": 1,
       "counter_intuitive_findings": 0
     },
     "committee": {

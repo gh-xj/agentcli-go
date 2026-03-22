@@ -15,10 +15,10 @@ func defaultTransitionsConfig() strategy.TransitionsConfig {
 		},
 		Initial: "open",
 		Transitions: map[string]strategy.TransitionDef{
-			"start": {From: "open", To: "in_progress"},
-			"block": {From: []any{"open", "in_progress"}, To: "blocked"},
-			"unblock": {From: "blocked", To: "in_progress"},
-			"resolve": {From: []any{"in_progress", "blocked"}, To: "resolved"},
+			"start":           {From: "open", To: "in_progress"},
+			"block":           {From: []any{"open", "in_progress"}, To: "blocked"},
+			"unblock":         {From: "blocked", To: "in_progress"},
+			"resolve":         {From: []any{"in_progress", "blocked"}, To: "resolved"},
 			"close_no_action": {From: []any{"open", "blocked"}, To: "closed_no_action"},
 		},
 	}

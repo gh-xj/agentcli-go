@@ -506,7 +506,7 @@ func (h *LoopHandler) ExecuteLoopAction(action string, args []string, ctx harnes
 		if len(args) == 0 {
 			return harness.CommandOutcome{}, harness.NewFailure(
 				harness.CodeUsage,
-				"usage: agentcli loop profile <name> [--repo-root path] [--threshold score] [--max-iterations n] [--branch name] [--api url] [--role-config path] [--verbose-artifacts|--no-verbose-artifacts]",
+				"usage: agentops loop profile <name> [--repo-root path] [--threshold score] [--max-iterations n] [--branch name] [--api url] [--role-config path] [--verbose-artifacts|--no-verbose-artifacts]",
 				"",
 				false,
 			)
@@ -523,7 +523,7 @@ func (h *LoopHandler) ExecuteLoopAction(action string, args []string, ctx harnes
 		return harness.CommandOutcome{}, harness.NewFailure(
 			harness.CodeUsage,
 			fmt.Sprintf("unknown loop action: %s", action),
-			"use 'agentcli loop --format json capabilities' to discover commands",
+			"use 'agentops loop --format json capabilities' to discover commands",
 			false,
 		)
 	}
@@ -534,7 +534,7 @@ func (h *LoopHandler) runLoopCapabilitiesCommand(args []string) (harness.Command
 		return harness.CommandOutcome{}, harness.NewFailure(
 			harness.CodeUsage,
 			fmt.Sprintf("unexpected argument: %s", args[0]),
-			"use global flags before action, for example: agentcli loop --format json capabilities",
+			"use global flags before action, for example: agentops loop --format json capabilities",
 			false,
 		)
 	}
@@ -662,7 +662,7 @@ func (h *LoopHandler) runLoopProfileCommand(name string, args []string, ctx harn
 		return harness.CommandOutcome{}, harness.NewFailure(
 			harness.CodeUsage,
 			fmt.Sprintf("unknown loop profile: %s", name),
-			"use 'agentcli loop profiles --format json' to inspect profiles",
+			"use 'agentops loop profiles --format json' to inspect profiles",
 			false,
 		)
 	}
@@ -725,7 +725,7 @@ func (h *LoopHandler) runLoopRegressionCommand(args []string, ctx harness.Contex
 		return harness.CommandOutcome{}, harness.NewFailure(
 			harness.CodeUsage,
 			fmt.Sprintf("unknown loop profile: %s", regressionFlags.Profile),
-			"use 'agentcli loop profiles --format json' to inspect profiles",
+			"use 'agentops loop profiles --format json' to inspect profiles",
 			false,
 		)
 	}
@@ -813,7 +813,7 @@ func (h *LoopHandler) runLoopRegressionCommand(args []string, ctx harness.Contex
 			}, harness.WrapFailure(
 				harness.CodeContractValidation,
 				"regression baseline missing or invalid",
-				fmt.Sprintf("create baseline with: agentcli loop regression --repo-root %s --profile %s --write-baseline", opts.RepoRoot, regressionFlags.Profile),
+				fmt.Sprintf("create baseline with: agentops loop regression --repo-root %s --profile %s --write-baseline", opts.RepoRoot, regressionFlags.Profile),
 				false,
 				err,
 			)
@@ -851,7 +851,7 @@ func (h *LoopHandler) runLoopRegressionCommand(args []string, ctx harness.Contex
 
 func (h *LoopHandler) runLoopLabCommand(args []string, ctx harness.Context) (harness.CommandOutcome, error) {
 	if len(args) == 0 {
-		return harness.CommandOutcome{}, harness.NewFailure(harness.CodeUsage, "usage: agentcli loop lab [compare|replay|run|judge|autofix] ...", "", false)
+		return harness.CommandOutcome{}, harness.NewFailure(harness.CodeUsage, "usage: agentops loop lab [compare|replay|run|judge|autofix] [advanced flags]", "", false)
 	}
 	action := args[0]
 	opts, err := ParseLoopLabFlags(args[1:])
@@ -933,7 +933,7 @@ func (h *LoopHandler) runLoopLabCommand(args []string, ctx harness.Context) (har
 		return harness.CommandOutcome{}, harness.NewFailure(
 			harness.CodeUsage,
 			fmt.Sprintf("unknown lab action: %s", action),
-			"use 'agentcli loop --format json capabilities' to discover lab actions",
+			"use 'agentops loop --format json capabilities' to discover lab actions",
 			false,
 		)
 	}

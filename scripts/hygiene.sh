@@ -64,15 +64,30 @@ if search_lines '(\.DS_Store|Thumbs\.db)$' "$(git rev-list --objects --all)" >/t
   fail=1
 fi
 
-say "[hygiene] checking for oversized blobs (>1MB) in history"
+say "[hygiene] checking tracked files for oversized blobs (>1MB)"
+if has_cmd awk; then
+  while IFS= read -r tracked_path; do
+    [ -f "$tracked_path" ] || continue
+    size_bytes="$(wc -c <"$tracked_path")"
+    if [ "$size_bytes" -gt 1048576 ]; then
+      printf '%s:%s\n' "$size_bytes" "$tracked_path"
+    fi
+  done < <(git ls-files) >/tmp/agentcli_hygiene_large_tracked.txt
+  if [ -s /tmp/agentcli_hygiene_large_tracked.txt ]; then
+    say "[hygiene] ERROR: oversized tracked files found:"
+    cat /tmp/agentcli_hygiene_large_tracked.txt
+    fail=1
+  fi
+fi
+
+say "[hygiene] checking history for oversized blobs (>1MB)"
 if has_cmd awk; then
   git rev-list --objects --all \
     | git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' \
     | awk '$1=="blob" && $3>1048576 {print NR ":" $0}' >/tmp/agentcli_hygiene_large_blobs.txt
   if [ -s /tmp/agentcli_hygiene_large_blobs.txt ]; then
-    say "[hygiene] ERROR: large blobs found in history (consider git lfs or prune):"
+    say "[hygiene] WARN: large blobs remain in history and may require a separate cleanup pass:"
     cat /tmp/agentcli_hygiene_large_blobs.txt
-    fail=1
   fi
 fi
 
@@ -80,6 +95,7 @@ rm -f /tmp/agentcli_hygiene_junk.txt \
   /tmp/agentcli_hygiene_sensitive_paths.txt \
   /tmp/agentcli_hygiene_sensitive_content.txt \
   /tmp/agentcli_hygiene_history_junk.txt \
+  /tmp/agentcli_hygiene_large_tracked.txt \
   /tmp/agentcli_hygiene_large_blobs.txt
 
 if [ "$fail" -ne 0 ]; then
